@@ -2,59 +2,77 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Garuda AI - Minimalist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garuda AI | System Core</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0a0a0a; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .typing { width: 6px; height: 6px; background: #60a5fa; border-radius: 50%; animation: blink 1s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;600&display=swap');
+        :root { --bg: #050505; --glass: rgba(255, 255, 255, 0.03); }
+        body { font-family: 'Geist', sans-serif; background: var(--bg); color: #ededed; }
+        .glass { background: var(--glass); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.06); }
+        .scrollbar-custom::-webkit-scrollbar { width: 4px; }
+        .scrollbar-custom::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .msg-enter { opacity: 0; transform: translateY(15px); transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .msg-enter-active { opacity: 1; transform: translateY(0); }
     </style>
 </head>
-<body class="text-white h-screen flex flex-col items-center">
-    <header class="w-full p-6 text-center text-sm tracking-widest text-zinc-500">GARUDA AI v2.0</header>
-    
-    <main id="chatArea" class="w-full max-w-2xl flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide"></main>
-
-    <form id="chatForm" class="w-full max-w-2xl p-6">
-        <div class="glass rounded-2xl p-2 flex items-center">
-            <input type="text" id="userInput" class="flex-1 bg-transparent p-3 outline-none" placeholder="Tanya sesuatu..." required>
-            <button class="px-5 py-2 bg-blue-600 rounded-xl hover:bg-blue-500 transition">Kirim</button>
+<body class="h-screen flex flex-col items-center overflow-hidden">
+    <header class="w-full max-w-3xl p-6 flex justify-between items-center glass rounded-b-3xl z-10">
+        <div class="flex items-center gap-3">
+            <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <span class="text-[10px] font-bold tracking-[0.3em] uppercase">Garuda Core v2.4</span>
         </div>
-    </form>
+        <button id="menuBtn" class="p-2 hover:bg-white/5 rounded-full transition-all">
+            <div class="space-y-1"><div class="w-4 h-[2px] bg-zinc-500"></div><div class="w-4 h-[2px] bg-zinc-500"></div></div>
+        </button>
+    </header>
+
+    <main id="chatArea" class="w-full max-w-3xl flex-1 overflow-y-auto p-6 space-y-8 scrollbar-custom"></main>
+
+    <footer class="w-full max-w-3xl p-6">
+        <form id="chatForm" class="glass rounded-2xl p-4 flex items-center gap-4 focus-within:ring-1 focus-within:ring-blue-500/50 transition-all">
+            <input type="text" id="userInput" class="flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-600" placeholder="Masukkan perintah ke sistem..." autocomplete="off">
+            <button class="text-[10px] font-bold text-blue-400 hover:text-white transition">SEND</button>
+        </form>
+    </footer>
 
     <script>
         const chatArea = document.getElementById('chatArea');
-        let memory = JSON.parse(localStorage.getItem('user_memory')) || [];
+        const state = { memory: JSON.parse(localStorage.getItem('g_mem')) || [] };
 
-        async function sendMessage() {
-            const input = document.getElementById('userInput');
-            const message = input.value;
-            if(!message) return;
-            
-            chatArea.innerHTML += `<div class="text-right text-zinc-300">${message}</div>`;
-            input.value = '';
+        async function postMessage(message) {
+            const container = document.createElement('div');
+            container.className = 'msg-enter';
+            container.innerHTML = `<p class="text-sm leading-relaxed">${message}</p>`;
+            chatArea.appendChild(container);
+            setTimeout(() => container.classList.add('msg-enter-active'), 50);
 
-            const loading = document.createElement('div');
-            loading.innerHTML = `<div class="typing"></div>`;
-            chatArea.appendChild(loading);
-
-            const res = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message, memory })
-            });
-            const data = await res.json();
-            
-            loading.remove();
-            chatArea.innerHTML += `<div class="text-blue-200 leading-relaxed">${data.reply}</div>`;
-            
-            // Simpan ke memori lokal
-            memory.push({ role: 'user', content: message }, { role: 'assistant', content: data.reply });
-            localStorage.setItem('user_memory', JSON.stringify(memory.slice(-10))); // Simpan 10 chat terakhir
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, memory: state.memory.slice(-8) })
+                });
+                const data = await response.json();
+                
+                const replyDiv = document.createElement('div');
+                replyDiv.className = 'msg-enter text-blue-200/90 text-sm leading-relaxed';
+                replyDiv.innerHTML = data.reply;
+                chatArea.appendChild(replyDiv);
+                setTimeout(() => replyDiv.classList.add('msg-enter-active'), 50);
+                
+                state.memory.push({role: 'user', content: message}, {role: 'assistant', content: data.reply});
+                localStorage.setItem('g_mem', JSON.stringify(state.memory));
+            } catch (err) {
+                console.error("System Error:", err);
+            }
         }
-        document.getElementById('chatForm').onsubmit = (e) => { e.preventDefault(); sendMessage(); };
+
+        document.getElementById('chatForm').onsubmit = (e) => {
+            e.preventDefault();
+            const input = document.getElementById('userInput');
+            if(input.value) { postMessage(input.value); input.value = ''; }
+        };
     </script>
 </body>
 </html>
