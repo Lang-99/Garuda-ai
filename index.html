@@ -2,52 +2,59 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Garuda AI</title>
+    <title>Garuda AI - Minimalist</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        .typing { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: white; animation: blink 1s infinite; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .typing { width: 6px; height: 6px; background: #60a5fa; border-radius: 50%; animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
     </style>
 </head>
-<body class="bg-zinc-950 text-white h-screen flex flex-col">
-    <header class="p-4 border-b border-zinc-800 text-center font-bold text-blue-500">GARUDA AI</header>
-    <main id="chatArea" class="flex-1 overflow-y-auto p-4 space-y-4"></main>
-    <form id="chatForm" class="p-4 bg-zinc-900 border-t border-zinc-800">
-        <div class="flex gap-2 max-w-3xl mx-auto">
-            <input type="text" id="userInput" class="flex-1 bg-zinc-800 rounded p-2 outline-none" placeholder="Tanya sesuatu..." required>
-            <button type="submit" class="bg-blue-600 px-6 py-2 rounded font-bold">Kirim</button>
+<body class="text-white h-screen flex flex-col items-center">
+    <header class="w-full p-6 text-center text-sm tracking-widest text-zinc-500">GARUDA AI v2.0</header>
+    
+    <main id="chatArea" class="w-full max-w-2xl flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide"></main>
+
+    <form id="chatForm" class="w-full max-w-2xl p-6">
+        <div class="glass rounded-2xl p-2 flex items-center">
+            <input type="text" id="userInput" class="flex-1 bg-transparent p-3 outline-none" placeholder="Tanya sesuatu..." required>
+            <button class="px-5 py-2 bg-blue-600 rounded-xl hover:bg-blue-500 transition">Kirim</button>
         </div>
     </form>
 
     <script>
         const chatArea = document.getElementById('chatArea');
-        const form = document.getElementById('chatForm');
-        const input = document.getElementById('userInput');
+        let memory = JSON.parse(localStorage.getItem('user_memory')) || [];
 
-        form.onsubmit = async (e) => {
-            e.preventDefault();
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
             const message = input.value;
-            chatArea.innerHTML += `<div class="p-2 bg-zinc-800 rounded self-end"><b>Anda:</b> ${message}</div>`;
+            if(!message) return;
+            
+            chatArea.innerHTML += `<div class="text-right text-zinc-300">${message}</div>`;
             input.value = '';
 
             const loading = document.createElement('div');
-            loading.innerHTML = `<div>Garuda: <span class="typing"></span></div>`;
+            loading.innerHTML = `<div class="typing"></div>`;
             chatArea.appendChild(loading);
 
-            try {
-                const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message })
-                });
-                const data = await res.json();
-                loading.innerHTML = `<div><b>Garuda:</b> ${data.reply || data.error || 'Error tidak diketahui'}</div>`;
-            } catch (err) {
-                loading.innerHTML = `<div>Error: Koneksi gagal.</div>`;
-            }
-            chatArea.scrollTop = chatArea.scrollHeight;
-        };
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message, memory })
+            });
+            const data = await res.json();
+            
+            loading.remove();
+            chatArea.innerHTML += `<div class="text-blue-200 leading-relaxed">${data.reply}</div>`;
+            
+            // Simpan ke memori lokal
+            memory.push({ role: 'user', content: message }, { role: 'assistant', content: data.reply });
+            localStorage.setItem('user_memory', JSON.stringify(memory.slice(-10))); // Simpan 10 chat terakhir
+        }
+        document.getElementById('chatForm').onsubmit = (e) => { e.preventDefault(); sendMessage(); };
     </script>
 </body>
 </html>
