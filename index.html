@@ -16,431 +16,188 @@
         .bg-glow2 { position: fixed; width: 400px; height: 400px; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; opacity: 0.08; background: radial-gradient(circle, var(--accent), transparent 70%); bottom: 0; left: -100px; animation: glowFloat 10s ease-in-out infinite reverse; }
         @keyframes glowFloat { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(30px) scale(1.05); } }
         .app-wrapper { position: relative; z-index: 1; width: 100%; max-width: 720px; height: 100%; display: flex; flex-direction: column; }
-        header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(10,10,10,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); flex-shrink: 0; animation: slideDown 0.5s cubic-bezier(0.2,0.8,0.2,1) both; }
+        header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(10,10,10,0.8); backdrop-filter: blur(20px); flex-shrink: 0; animation: slideDown 0.5s both; }
         @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .logo-group { display: flex; align-items: center; gap: 10px; }
         .logo-icon { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .logo-icon img { width: 100%; height: 100%; object-fit: cover; }
         .logo-text { display: flex; flex-direction: column; gap: 1px; }
         .logo-name { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: var(--text); }
-        .logo-status { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text3); font-family: var(--mono); letter-spacing: 0.05em; }
-        .status-dot { width: 5px; height: 5px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 6px #4ade80; animation: pulse-dot 2s ease-in-out infinite; }
-        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+        .logo-status { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text3); font-family: var(--mono); }
+        .status-dot { width: 5px; height: 5px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 6px #4ade80; animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .header-actions { display: flex; align-items: center; gap: 8px; }
-        .icon-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
-        .icon-btn:hover, .icon-btn:active { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+        .icon-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .icon-btn:hover { background: var(--surface2); color: var(--text); }
         .icon-btn svg { width: 15px; height: 15px; }
-        .model-tag { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); font-family: var(--mono); font-size: 10px; color: var(--text2); letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; }
+        .model-tag { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); font-family: var(--mono); font-size: 10px; color: var(--text2); letter-spacing: 0.05em; cursor: pointer; }
         .model-tag:hover { border-color: var(--accent); color: var(--accent); }
         .model-dot { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; }
         #chatArea { flex: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
         #chatArea::-webkit-scrollbar { width: 3px; }
-        #chatArea::-webkit-scrollbar-track { background: transparent; }
         #chatArea::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
-        .welcome-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 40px 20px; animation: fadeUp 0.8s cubic-bezier(0.2,0.8,0.2,1) 0.2s both; }
+        .welcome-screen { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 40px 20px; animation: fadeUp 0.8s both; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .welcome-logo { width: 64px; height: 64px; border-radius: 18px; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 40px rgba(125,249,255,0.2); border: 1px solid var(--border2); }
         .welcome-logo img { width: 100%; height: 100%; object-fit: cover; }
-        .welcome-title { font-family: var(--mono); font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--text) 0%, var(--text2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+        .welcome-title { font-family: var(--mono); font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--text) 0%, var(--text2) 100%); -webkit-background-clip: text; text-align: center; color: var(--text); }
         .welcome-sub { font-size: 14px; color: var(--text3); text-align: center; max-width: 300px; line-height: 1.6; }
         .suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 480px; }
-        .suggestion-card { padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; transition: all 0.2s cubic-bezier(0.2,0.8,0.2,1); -webkit-tap-highlight-color: transparent; }
-        .suggestion-card:hover, .suggestion-card:active { border-color: var(--border2); background: var(--surface2); transform: translateY(-2px); }
+        .suggestion-card { padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; transition: all 0.2s; }
+        .suggestion-card:hover { border-color: var(--border2); background: var(--surface2); }
         .suggestion-icon { font-size: 16px; margin-bottom: 6px; }
         .suggestion-text { font-size: 12px; color: var(--text2); line-height: 1.4; }
-        .msg-row { display: flex; gap: 12px; animation: msgIn 0.4s cubic-bezier(0.2,0.8,0.2,1) both; }
+        .msg-row { display: flex; gap: 12px; animation: msgIn 0.4s both; }
         @keyframes msgIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         .msg-row.user { flex-direction: row-reverse; }
-        .msg-avatar { width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; font-weight: 700; margin-top: 2px; overflow: hidden; }
-        .msg-avatar.ai { border: 1px solid var(--border); }
+        .msg-avatar { width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); overflow: hidden; }
         .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .msg-avatar.user-av { background: var(--surface2); border: 1px solid var(--border2); color: var(--text2); }
+        .msg-avatar.user-av { background: var(--surface2); border: 1px solid var(--border2); color: var(--text2); font-weight: 700; }
         .msg-bubble { max-width: calc(100% - 50px); display: flex; flex-direction: column; gap: 6px; }
-        .msg-name { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.05em; padding: 0 4px; }
+        .msg-name { font-family: var(--mono); font-size: 10px; color: var(--text3); }
         .msg-row.user .msg-name { text-align: right; }
         .msg-content { padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.65; word-break: break-word; }
         .msg-row.ai .msg-content { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 4px 12px 12px 12px; }
         .msg-row.user .msg-content { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: 12px 4px 12px 12px; align-self: flex-end; }
-        .msg-meta { display: flex; align-items: center; gap: 8px; padding: 0 4px; }
+        .msg-meta { display: flex; align-items: center; gap: 8px; }
         .msg-row.user .msg-meta { justify-content: flex-end; }
         .msg-time { font-family: var(--mono); font-size: 9px; color: var(--text3); }
-        .msg-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
-        .msg-row:hover .msg-actions { opacity: 1; }
+        .msg-actions { display: flex; gap: 4px; }
         .msg-action-btn { width: 22px; height: 22px; border-radius: 5px; border: 1px solid var(--border); background: var(--surface); color: var(--text3); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; font-size: 10px; }
         .msg-action-btn:hover { color: var(--text); background: var(--surface2); }
         .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 14px 16px; }
-        .typing-dot { width: 6px; height: 6px; background: var(--text3); border-radius: 50%; animation: typingBounce 1.2s ease-in-out infinite; }
+        .typing-dot { width: 6px; height: 6px; background: var(--text3); border-radius: 50%; animation: typingBounce 1.2s infinite; }
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-6px); opacity: 1; } }
-        footer { padding: 12px 16px 20px; flex-shrink: 0; border-top: 1px solid var(--border); background: rgba(10,10,10,0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding-bottom: max(20px, env(safe-area-inset-bottom)); }
-        .toolbar { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-        .toolbar::-webkit-scrollbar { display: none; }
-        .tool-chip { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); font-family: var(--mono); font-size: 10px; color: var(--text2); cursor: pointer; white-space: nowrap; transition: all 0.2s; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
+        footer { padding: 12px 16px 20px; flex-shrink: 0; border-top: 1px solid var(--border); background: rgba(10,10,10,0.9); backdrop-filter: blur(20px); }
+        .toolbar { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; overflow-x: auto; }
+        .tool-chip { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); font-family: var(--mono); font-size: 10px; color: var(--text2); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
         .tool-chip:hover, .tool-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,0.05); }
         .tool-chip svg { width: 11px; height: 11px; }
-        .input-box { display: flex; align-items: flex-end; gap: 10px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); transition: border-color 0.2s, box-shadow 0.2s; }
-        .input-box:focus-within { border-color: rgba(232,255,71,0.3); box-shadow: 0 0 0 3px rgba(232,255,71,0.05); }
-        #userInput { flex: 1; background: transparent; border: none; outline: none; font-family: var(--sans); font-size: 14px; color: var(--text); resize: none; line-height: 1.5; max-height: 120px; overflow-y: auto; padding: 2px 0; }
-        #userInput::placeholder { color: var(--text3); }
-        #userInput::-webkit-scrollbar { width: 2px; }
-        .input-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-        .attach-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text3); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
-        .attach-btn:hover { color: var(--text2); border-color: var(--border2); }
-        .attach-btn svg { width: 14px; height: 14px; }
-        #sendBtn { width: 34px; height: 34px; border-radius: 9px; border: none; background: var(--accent); color: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s cubic-bezier(0.2,0.8,0.2,1); flex-shrink: 0; }
-        #sendBtn:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(232,255,71,0.3); }
-        #sendBtn:active { transform: scale(0.95); }
+        .input-box { display: flex; align-items: flex-end; gap: 10px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); transition: border-color 0.2s; }
+        .input-box:focus-within { border-color: rgba(232,255,71,0.3); }
+        #userInput { flex: 1; background: transparent; border: none; outline: none; font-family: var(--sans); font-size: 14px; color: var(--text); resize: none; line-height: 1.5; max-height: 120px; overflow-y: auto; }
+        #sendBtn { width: 34px; height: 34px; border-radius: 9px; border: none; background: var(--accent); color: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        #sendBtn:hover { transform: scale(1.05); }
+        #sendBtn:disabled { opacity: 0.4; cursor: not-allowed; }
         #sendBtn svg { width: 16px; height: 16px; }
-        #sendBtn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-        .input-footer { display: flex; justify-content: flex-end; padding: 4px 2px 0; }
-        .char-count { font-family: var(--mono); font-size: 9px; color: var(--text3); }
-        .sidebar { position: fixed; top: 0; right: 0; width: 280px; height: 100%; background: #111; border-left: 1px solid var(--border); z-index: 100; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.2,0.8,0.2,1); display: flex; flex-direction: column; padding: 20px; gap: 20px; overflow-y: auto; }
+        .sidebar { position: fixed; top: 0; right: 0; width: 280px; height: 100%; background: #111; border-left: 1px solid var(--border); z-index: 100; transform: translateX(100%); transition: transform 0.35s; display: flex; flex-direction: column; padding: 20px; gap: 20px; overflow-y: auto; }
         .sidebar.open { transform: translateX(0); }
-        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.35s; backdrop-filter: blur(4px); }
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.35s; }
         .sidebar-overlay.open { opacity: 1; pointer-events: all; }
-        .sidebar-header { display: flex; align-items: center; justify-content: space-between; }
-        .sidebar-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--text2); }
-        .sidebar-section { display: flex; flex-direction: column; gap: 8px; }
-        .sidebar-label { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; }
         .sidebar-item { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; color: var(--text2); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 8px; }
-        .sidebar-item:hover { color: var(--text); background: var(--surface2); border-color: var(--border2); }
-        .sidebar-item .si-icon { font-size: 14px; }
-        .memory-count { margin-left: auto; font-family: var(--mono); font-size: 10px; padding: 2px 7px; border-radius: 10px; background: var(--surface2); color: var(--text3); }
-        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 10px 18px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border2); font-family: var(--mono); font-size: 11px; color: var(--text); opacity: 0; transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1); pointer-events: none; z-index: 200; white-space: nowrap; }
+        .sidebar-item:hover { color: var(--text); background: var(--surface2); }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 10px 18px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border2); font-family: var(--mono); font-size: 11px; color: var(--text); opacity: 0; transition: all 0.3s; z-index: 200; }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-        
-        /* STYLE KHUSUS IMAGE GENERATION CONTAINER */
         .generated-image-box { margin-top: 10px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border2); background: #000; position: relative; max-width: 100%; display: flex; flex-direction: column; }
         .generated-image-box img { width: 100%; height: auto; display: block; object-fit: contain; }
-        .download-photo-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: var(--accent); color: #000; font-family: var(--mono); font-weight: 700; font-size: 11px; border: none; cursor: pointer; text-decoration: none; text-align: center; transition: background 0.2s; }
+        .download-photo-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: var(--accent); color: #000; font-family: var(--mono); font-weight: 700; font-size: 11px; text-decoration: none; transition: background 0.2s; }
         .download-photo-btn:hover { background: #d4ec34; }
-
-        .history-container { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
-        .history-item { font-size: 12px; padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); display: flex; flex-direction: column; gap: 2px; cursor: pointer; transition: all 0.15s; }
-        .history-item:hover { background: var(--surface2); border-color: var(--border2); }
-        .history-title { color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-transform: none; text-overflow: ellipsis; }
-        .history-time { font-family: var(--mono); font-size: 9px; color: var(--text3); }
-        .empty-history { font-size: 11px; color: var(--text3); text-align: center; padding: 10px 0; font-style: italic; }
+        .history-container { display: flex; flex-direction: column; gap: 6px; }
     </style>
 </head>
 <body>
     <div class="bg-grid"></div>
     <div class="bg-glow"></div>
     <div class="bg-glow2"></div>
-
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <span class="sidebar-title">SISTEM</span>
-            <button class="icon-btn" id="closeSidebar">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-        </div>
+        <div class="sidebar-header"><span class="sidebar-title">SISTEM</span></div>
         <div class="sidebar-section">
-            <div class="sidebar-label">Model</div>
-            <div class="sidebar-item">
-                <span class="si-icon">⚡</span> Garuda Core v2.4 <span class="memory-count">aktif</span>
-            </div>
-        </div>
-        <div class="sidebar-section">
-            <div class="sidebar-label">Memori Aktif</div>
-            <div class="sidebar-item" id="viewMemory">
-                <span class="si-icon">🧠</span> Lihat Memori <span class="memory-count" id="memCount">0</span>
-            </div>
-            <div class="sidebar-item" id="clearMemoryBtn">
-                <span class="si-icon">🗑️</span> Hapus Memori
-            </div>
-        </div>
-        <div class="sidebar-section">
-            <div class="sidebar-label">Riwayat Percakapan</div>
+            <div class="sidebar-label">Riwayat</div>
             <div class="history-container" id="historyListContainer"></div>
         </div>
-        <div class="sidebar-section">
-            <div class="sidebar-label">Sesi</div>
-            <div class="sidebar-item" id="exportChat">
-                <span class="si-icon">📤</span> Export Chat
-            </div>
-            <div class="sidebar-item" id="newChatBtn">
-                <span class="si-icon">✨</span> Chat Baru (Mulai Ulang)
-            </div>
-        </div>
+        <div class="sidebar-item" id="clearMemoryBtn">🗑️ Hapus Memori</div>
     </div>
-
     <div class="app-wrapper">
         <header>
             <div class="logo-group">
-                <div class="logo-icon">
-                    <img src="https://kappa.lol/8AK3HC" alt="Garuda AI Core">
-                </div>
-                <div class="logo-text">
-                    <div class="logo-name">GARUDA AI</div>
-                    <div class="logo-status">
-                        <div class="status-dot"></div>
-                        <span>ONLINE · v2.4</span>
-                    </div>
-                </div>
+                <div class="logo-icon"><img src="https://kappa.lol/8AK3HC" alt="G"></div>
+                <div class="logo-text"><div class="logo-name">GARUDA AI</div></div>
             </div>
-            <div class="header-actions">
-                <div class="model-tag" id="modelTag">
-                    <div class="model-dot"></div> CORE
-                </div>
-                <button class="icon-btn" id="menuBtn" title="Menu">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="5" r="1" fill="currentColor"/>
-                        <circle cx="12" cy="12" r="1" fill="currentColor"/>
-                        <circle cx="12" cy="19" r="1" fill="currentColor"/>
-                    </svg>
-                </button>
-            </div>
+            <button class="icon-btn" id="menuBtn">☰</button>
         </header>
-
         <div id="chatArea">
             <div class="welcome-screen" id="welcomeScreen">
-                <div class="welcome-logo">
-                    <img src="https://kappa.lol/8AK3HC" alt="Garuda Logo">
-                </div>
-                <div>
-                    <div class="welcome-title">Garuda AI</div>
-                    <div class="welcome-sub" style="margin-top:8px">Sistem kecerdasan buatan siap membantu Anda. Tanyakan apa saja.</div>
-                </div>
+                <div class="welcome-logo"><img src="https://kappa.lol/8AK3HC" alt="G"></div>
+                <div class="welcome-title">Garuda AI</div>
                 <div class="suggestions">
-                    <div class="suggestion-card" data-text="Generate foto robot garuda emas futuristik cyberpunk">
-                        <div class="suggestion-icon">🎨</div>
-                        <div class="suggestion-text">Generate foto robot garuda futuristik</div>
-                    </div>
-                    <div class="suggestion-card" data-text="Bantu saya menulis email profesional">
-                        <div class="suggestion-icon">✉️</div>
-                        <div class="suggestion-text">Tulis email profesional</div>
-                    </div>
-                    <div class="suggestion-card" data-text="Buat kode Python untuk sorting data">
-                        <div class="suggestion-icon">💻</div>
-                        <div class="suggestion-text">Kode Python sorting data</div>
-                    </div>
-                    <div class="suggestion-card" data-text="Jelaskan tentang kecerdasan buatan">
-                        <div class="suggestion-icon">🧠</div>
-                        <div class="suggestion-text">Jelaskan kecerdasan buatan</div>
-                    </div>
+                    <div class="suggestion-card" data-text="Generate foto Elang Jawa asli">🎨 Generate Elang Jawa</div>
+                    <div class="suggestion-card" data-text="Siapa yang membuat kamu?">🧠 Siapa pembuatmu?</div>
                 </div>
             </div>
         </div>
-
         <footer>
             <div class="toolbar">
-                <div class="tool-chip active" data-mode="chat">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> CHAT
-                </div>
-                <div class="tool-chip" data-mode="search">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> FOTO/CARI
-                </div>
-                <div class="tool-chip" data-mode="code">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> KODE
-                </div>
-                <div class="tool-chip" data-mode="analyze">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> ANALISIS
-                </div>
-                <div class="tool-chip" data-mode="translate">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg> TERJEMAH </div>
+                <div class="tool-chip active" data-mode="chat">CHAT</div>
+                <div class="tool-chip" data-mode="search">FOTO</div>
             </div>
             <div class="input-box">
-                <textarea id="userInput" placeholder="Masukkan perintah..." rows="1" maxlength="4000"></textarea>
-                <div class="input-actions">
-                    <button class="attach-btn" id="attachBtn" title="Lampirkan">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                    </button>
-                    <button id="sendBtn" title="Kirim" disabled>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    </button>
-                </div>
-            </div>
-            <div class="input-footer">
-                <span class="char-count" id="charCount">0 / 4000</span>
+                <textarea id="userInput" placeholder="Masukkan perintah..." rows="1"></textarea>
+                <button id="sendBtn" disabled>▶</button>
             </div>
         </footer>
     </div>
-
     <div class="toast" id="toast"></div>
-
     <script>
-        const state = { 
-            memory: JSON.parse(localStorage.getItem('garuda_mem')) || [], 
-            sessions: JSON.parse(localStorage.getItem('garuda_sessions')) || [],
-            mode: 'chat', 
-            typing: false, 
-            msgCount: 0 
-        };
-
+        const state = { memory: JSON.parse(localStorage.getItem('garuda_mem')) || [], mode: 'chat', typing: false };
         const AVATAR_URL = "https://kappa.lol/8AK3HC";
-
         const chatArea = document.getElementById('chatArea');
         const welcomeScreen = document.getElementById('welcomeScreen');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
-        const charCount = document.getElementById('charCount');
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const memCount = document.getElementById('memCount');
-        const historyListContainer = document.getElementById('historyListContainer');
 
-        updateMemCount();
-        renderHistoryTabs();
-        if (state.memory.length > 0) {
-            welcomeScreen.style.display = 'none';
-            restoreMemory();
-        }
+        if (state.memory.length > 0) { welcomeScreen.style.display = 'none'; restoreMemory(); }
 
         userInput.addEventListener('input', () => {
-            userInput.style.height = 'auto';
-            userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
-            const len = userInput.value.length;
-            charCount.textContent = `${len} / 4000`;
-            sendBtn.disabled = len === 0;
-        });
-
-        userInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (!sendBtn.disabled) handleSend();
-            }
+            userInput.style.height = 'auto'; userInput.style.height = userInput.scrollHeight + 'px';
+            sendBtn.disabled = userInput.value.trim().length === 0;
         });
 
         sendBtn.addEventListener('click', handleSend);
 
         document.querySelectorAll('.suggestion-card').forEach(card => {
-            card.addEventListener('click', () => {
-                userInput.value = card.dataset.text;
-                userInput.style.height = 'auto';
-                sendBtn.disabled = false;
-                charCount.textContent = `${card.dataset.text.length} / 4000`;
-                handleSend();
-            });
+            card.addEventListener('click', () => { userInput.value = card.dataset.text; handleSend(); });
         });
 
         document.querySelectorAll('.tool-chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
-                chip.classList.add('active');
-                state.mode = chip.dataset.mode;
-                const placeholders = {
-                    chat: 'Masukkan perintah...',
-                    search: 'Ketik deskripsi foto untuk generate...',
-                    code: 'Deskripsikan kode yang diinginkan...',
-                    analyze: 'Tempelkan teks atau deskripsi visual...',
-                    translate: 'Masukkan teks untuk diterjemahkan...'
-                };
-                userInput.placeholder = placeholders[state.mode];
-                userInput.focus();
+                chip.classList.add('active'); state.mode = chip.dataset.mode;
             });
         });
 
-        document.getElementById('menuBtn').addEventListener('click', () => {
-            sidebar.classList.add('open');
-            sidebarOverlay.classList.add('open');
-            renderHistoryTabs();
-        });
-
-        document.getElementById('closeSidebar').addEventListener('click', closeSidebar);
-        sidebarOverlay.addEventListener('click', closeSidebar);
-
-        function closeSidebar() {
-            sidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('open');
-        }
-
+        document.getElementById('menuBtn').addEventListener('click', () => { sidebar.classList.add('open'); sidebarOverlay.classList.add('open'); });
+        sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('open'); });
+        
         document.getElementById('clearMemoryBtn').addEventListener('click', () => {
-            state.memory = []; state.sessions = [];
-            localStorage.removeItem('garuda_mem'); localStorage.removeItem('garuda_sessions');
-            updateMemCount(); renderHistoryTabs();
-            chatArea.innerHTML = ''; chatArea.appendChild(welcomeScreen);
-            welcomeScreen.style.display = 'flex';
-            showToast('Semua memori & riwayat dihapus ✓'); closeSidebar();
-        });
-
-        document.getElementById('newChatBtn').addEventListener('click', () => {
-            archiveCurrentSession();
             state.memory = []; localStorage.removeItem('garuda_mem');
             chatArea.innerHTML = ''; chatArea.appendChild(welcomeScreen);
-            welcomeScreen.style.display = 'flex';
-            updateMemCount(); renderHistoryTabs();
-            showToast('Sesi chat baru dimulai ✓'); closeSidebar();
+            welcomeScreen.style.display = 'flex'; showToast('Memori dihapus ✓');
         });
-
-        document.getElementById('exportChat').addEventListener('click', () => {
-            if (state.memory.length === 0) { showToast('Tidak ada percakapan aktif'); return; }
-            const msgs = state.memory.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n\n');
-            const blob = new Blob([msgs], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `garuda-chat-${Date.now()}.txt`; a.click();
-            showToast('Chat diekspor ✓'); closeSidebar();
-        });
-
-        function archiveCurrentSession() {
-            if (state.memory.length === 0) return;
-            const firstUserMsg = state.memory.find(m => m.role === 'user');
-            const title = firstUserMsg ? firstUserMsg.content.substring(0, 30) + '...' : 'Percakapan Lama';
-            const now = new Date();
-            const timeString = now.toLocaleDateString('id-ID') + ' ' + now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-            state.sessions.unshift({ id: 'sess_' + Date.now(), title, timestamp: timeString, data: [...state.memory] });
-            localStorage.setItem('garuda_sessions', JSON.stringify(state.sessions));
-        }
-
-        function renderHistoryTabs() {
-            historyListContainer.innerHTML = '';
-            if (state.sessions.length === 0) {
-                historyListContainer.innerHTML = '<div class="empty-history">Belum ada riwayat chat.</div>';
-                return;
-            }
-            state.sessions.forEach(sess => {
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `<div class="history-title">${sess.title}</div><div class="history-time">🕒 ${sess.timestamp}</div>`;
-                div.addEventListener('click', () => {
-                    archiveCurrentSession();
-                    state.memory = sess.data;
-                    localStorage.setItem('garuda_mem', JSON.stringify(state.memory));
-                    welcomeScreen.style.display = 'none'; chatArea.innerHTML = '';
-                    restoreMemory(); updateMemCount();
-                    state.sessions = state.sessions.filter(s => s.id !== sess.id);
-                    localStorage.setItem('garuda_sessions', JSON.stringify(state.sessions));
-                    showToast('Memuat percakapan lama ✓'); closeSidebar();
-                });
-                historyListContainer.appendChild(div);
-            });
-        }
 
         // PERBAIKAN LOGIKA RESTORE MEMORY AMAN DARI PROVIDER ERROR
         function restoreMemory() {
-            state.memory.forEach((m, index) => {
-                if (m.role === 'user') {
-                    appendMsg('user', m.content, false);
-                } else if (m.role === 'assistant') {
+            state.memory.forEach(m => {
+                if (m.role === 'user') { appendMsg('user', m.content, false); }
+                else if (m.role === 'assistant') {
                     const imgMatch = m.content.match(/\|\|img_url:(.*?)\|\|/);
-                    let cleanContent = m.content;
-                    let extractedImgUrl = null;
-
-                    if (imgMatch) {
-                        extractedImgUrl = imgMatch[1];
-                        cleanContent = m.content.replace(/\|\|img_url:.*?\|\|/, '').trim();
-                    }
-
+                    let cleanContent = m.content; let extractedImgUrl = null;
+                    if (imgMatch) { extractedImgUrl = imgMatch[1]; cleanContent = m.content.replace(/\|\|img_url:.*?\|\|/, '').trim(); }
                     appendMsg('ai', cleanContent, false, extractedImgUrl);
                 }
             });
         }
 
-        // PERBAIKAN HANDLE SEND DENGAN INTEGRASI STRUKTUR TEXT-IMAGE SAFE STORAGE
+        // PERBAIKAN HANDLE SEND DENGAN INTEGRASI "TEXT-IMAGE SAFE STORAGE"
         async function handleSend() {
-            const text = userInput.value.trim();
-            if (!text || state.typing) return;
-
-            welcomeScreen.style.display = 'none';
-            userInput.value = ''; userInput.style.height = 'auto';
-            sendBtn.disabled = true; charCount.textContent = '0 / 4000';
-            state.typing = true;
-
-            appendMsg('user', text);
-            const typingEl = appendTyping();
+            const text = userInput.value.trim(); if (!text || state.typing) return;
+            welcomeScreen.style.display = 'none'; userInput.value = ''; userInput.style.height = 'auto';
+            sendBtn.disabled = true; state.typing = true;
+            appendMsg('user', text); const typingEl = appendTyping();
 
             try {
                 const res = await fetch('/api/chat', {
@@ -448,118 +205,29 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: text, memory: state.memory.slice(-10), mode: state.mode })
                 });
-
-                const data = await res.json();
-                typingEl.remove();
-
-                const reply = data.reply || data.error || 'Sistem mengalami gangguan teknis.';
+                const data = await res.json(); typingEl.remove();
+                const reply = data.reply || data.error || 'Sistem gangguan.';
                 const imgUrl = data.generated_image || null;
-
                 appendMsg('ai', reply, true, imgUrl);
-
-                let assistantContent = reply;
-                if (imgUrl) {
-                    assistantContent += ` ||img_url:${imgUrl}||`;
-                }
-
-                state.memory.push(
-                    { role: 'user', content: text }, 
-                    { role: 'assistant', content: assistantContent }
-                );
                 
+                // SIMPAN MEMORY DENGAN FORMAT AMAN TEXT-IMAGE
+                let assistantContent = reply; if (imgUrl) assistantContent += ` ||img_url:${imgUrl}||`;
+                state.memory.push({ role: 'user', content: text }, { role: 'assistant', content: assistantContent });
                 localStorage.setItem('garuda_mem', JSON.stringify(state.memory));
-                updateMemCount();
-
-            } catch (err) {
-                typingEl.remove();
-                appendMsg('ai', '⚠️ Gagal terhubung ke API Core Gateway.');
-            }
+            } catch (err) { typingEl.remove(); appendMsg('ai', '⚠️ Gangguan API.'); }
             state.typing = false;
         }
 
         function appendMsg(role, text, animate = true, imageUrl = null) {
-            state.msgCount++;
-            const row = document.createElement('div');
-            row.className = `msg-row ${role}`;
-            if (!animate) row.style.animation = 'none';
-            
-            const now = new Date();
-            const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-            const formatted = formatText(text);
-            const avatarContent = role === 'ai' ? `<img src="${AVATAR_URL}" alt="G">` : 'U';
-
-            let imageHtmlStructure = '';
-            if (imageUrl) {
-                imageHtmlStructure = `
-                    <div class="generated-image-box">
-                        <img src="${imageUrl}" alt="Garuda AI Generated Photo">
-                        <a href="${imageUrl}" target="_blank" download="garuda-ai-photo.jpg" class="download-photo-btn">
-                            📥 DOWNLOAD FOTO (HD)
-                        </a>
-                    </div>
-                `;
-            }
-
-            row.innerHTML = `
-                <div class="msg-avatar ${role === 'ai' ? 'ai' : 'user-av'}">${avatarContent}</div>
-                <div class="msg-bubble">
-                    <div class="msg-name">${role === 'ai' ? 'GARUDA' : 'ANDA'}</div>
-                    <div class="msg-content">${formatted} ${imageHtmlStructure}</div>
-                    <div class="msg-meta">
-                        <span class="msg-time">${time}</span>
-                        <div class="msg-actions">
-                            <button class="msg-action-btn copy-btn" title="Salin">📋</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            row.querySelector('.copy-btn')?.addEventListener('click', () => {
-                navigator.clipboard.writeText(text).then(() => showToast('Teks disalin ✓'));
-            });
-
-            chatArea.appendChild(row);
-            chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: animate ? 'smooth' : 'auto' });
+            const row = document.createElement('div'); row.className = `msg-row ${role}`;
+            let imageHtml = ''; if (imageUrl) imageHtml = `<div class="generated-image-box"><img src="${imageUrl}"><a href="${imageUrl}" target="_blank" download="garuda-photo.jpg" class="download-photo-btn">📥 DOWNLOAD</a></div>`;
+            const avatar = role === 'ai' ? `<img src="${AVATAR_URL}">` : 'U';
+            row.innerHTML = `<div class="msg-avatar ${role === 'ai' ? 'ai' : 'user-av'}">${avatar}</div><div class="msg-bubble"><div class="msg-content">${text} ${imageHtml}</div></div>`;
+            chatArea.appendChild(row); chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: animate ? 'smooth' : 'auto' });
             return row;
         }
-
-        function appendTyping() {
-            const row = document.createElement('div');
-            row.className = 'msg-row ai';
-            row.innerHTML = `
-                <div class="msg-avatar ai"><img src="${AVATAR_URL}" alt="G"></div>
-                <div class="msg-bubble">
-                    <div class="msg-name">GARUDA</div>
-                    <div class="msg-content" style="padding:0">
-                        <div class="typing-indicator">
-                            <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            chatArea.appendChild(row);
-            chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: 'smooth' });
-            return row;
-        }
-
-        function formatText(text) {
-            text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => 
-                `<div style="margin:8px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
-                    ${lang ? `<div style="padding:6px 12px;background:var(--surface2);font-family:var(--mono);font-size:10px;color:var(--text2)">${lang.toUpperCase()}</div>` : ''}
-                    <pre style="padding:12px;overflow-x:auto;font-family:var(--mono);font-size:12px;background:#0d0d0d;color:#a8d8a8;margin:0"><code>${escHtml(code.trim())}</code></pre>
-                </div>`
-            );
-            text = text.replace(/`([^`]+)`/g, '<code style="font-family:var(--mono);font-size:12px;background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--accent2)">$1</code>');
-            text = text.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text);font-weight:600">$1</strong>');
-            text = text.replace(/\*(.*?)\*/g, '<em style="color:var(--text2)">$1</em>');
-            text = text.replace(/^[-•]\s(.+)/gm, '<div style="display:flex;gap:8px;padding:2px 0"><span style="color:var(--accent)">›</span><span>$1</span></div>');
-            text = text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
-            return text;
-        }
-
-        function escHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+        function appendTyping() { const row = document.createElement('div'); row.className = 'msg-row ai'; row.innerHTML = `<div class="msg-avatar ai"><img src="${AVATAR_URL}"></div><div class="msg-bubble"><div class="typing-indicator"><div></div><div></div><div></div></div></div>`; chatArea.appendChild(row); chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: 'smooth' }); return row; }
         function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
-        function updateMemCount() { memCount.textContent = Math.floor(state.memory.length / 2); }
     </script>
 </body>
 </html>
