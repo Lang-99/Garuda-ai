@@ -110,7 +110,7 @@
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 10px 18px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border2); font-family: var(--mono); font-size: 11px; color: var(--text); opacity: 0; transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1); pointer-events: none; z-index: 200; white-space: nowrap; }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         
-        /* STYLE KHUSUS CONTAINER FOTO GENERATED */
+        /* STYLE KHUSUS IMAGE GENERATION CONTAINER */
         .generated-image-box { margin-top: 10px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border2); background: #000; position: relative; max-width: 100%; display: flex; flex-direction: column; }
         .generated-image-box img { width: 100%; height: auto; display: block; object-fit: contain; }
         .download-photo-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: var(--accent); color: #000; font-family: var(--mono); font-weight: 700; font-size: 11px; border: none; cursor: pointer; text-decoration: none; text-align: center; transition: background 0.2s; }
@@ -271,7 +271,6 @@
             msgCount: 0 
         };
 
-        // AVATAR UTAMA UPDATE LOGO BARU
         const AVATAR_URL = "https://kappa.lol/8AK3HC";
 
         const chatArea = document.getElementById('chatArea');
@@ -410,17 +409,27 @@
             });
         }
 
+        // PERBAIKAN LOGIKA RESTORE MEMORY AMAN DARI PROVIDER ERROR
         function restoreMemory() {
             state.memory.forEach((m, index) => {
                 if (m.role === 'user') {
-                    appendMsg('user', m.content.replace(/^\[.*?\]\s/, ''), false);
+                    appendMsg('user', m.content, false);
                 } else if (m.role === 'assistant') {
-                    // Cek jika memori menyimpan objek foto lama
-                    appendMsg('ai', m.content, false, m.generated_image || null);
+                    const imgMatch = m.content.match(/\|\|img_url:(.*?)\|\|/);
+                    let cleanContent = m.content;
+                    let extractedImgUrl = null;
+
+                    if (imgMatch) {
+                        extractedImgUrl = imgMatch[1];
+                        cleanContent = m.content.replace(/\|\|img_url:.*?\|\|/, '').trim();
+                    }
+
+                    appendMsg('ai', cleanContent, false, extractedImgUrl);
                 }
             });
         }
 
+        // PERBAIKAN HANDLE SEND DENGAN INTEGRASI STRUKTUR TEXT-IMAGE SAFE STORAGE
         async function handleSend() {
             const text = userInput.value.trim();
             if (!text || state.typing) return;
@@ -448,11 +457,16 @@
 
                 appendMsg('ai', reply, true, imgUrl);
 
-                // Masukkan log ke dalam memori
-                const savedAssistentMsg = { role: 'assistant', content: reply };
-                if (imgUrl) savedAssistentMsg.generated_image = imgUrl; // simpan url gambar di localstorage
+                let assistantContent = reply;
+                if (imgUrl) {
+                    assistantContent += ` ||img_url:${imgUrl}||`;
+                }
 
-                state.memory.push({ role: 'user', content: text }, savedAssistentMsg);
+                state.memory.push(
+                    { role: 'user', content: text }, 
+                    { role: 'assistant', content: assistantContent }
+                );
+                
                 localStorage.setItem('garuda_mem', JSON.stringify(state.memory));
                 updateMemCount();
 
@@ -463,7 +477,6 @@
             state.typing = false;
         }
 
-        // PERBAIKAN DAN PENAMBAHAN INTEGRASI RENDER FOTO + DOWNLOAD
         function appendMsg(role, text, animate = true, imageUrl = null) {
             state.msgCount++;
             const row = document.createElement('div');
