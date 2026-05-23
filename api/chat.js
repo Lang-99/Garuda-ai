@@ -15,13 +15,13 @@ export default async function handler(req, res) {
         const isImageRequest = imageKeywords.some(regex => regex.test(message)) || mode === 'search' || mode === 'analyze';
 
         if (isImageRequest) {
-            // Bersihkan prompt dari keyword pemicu agar hasilnya maksimal
+            // Bersihkan prompt dari keyword pemicu agar hasil gambar fokus
             let imagePrompt = message;
             imageKeywords.forEach(regex => { imagePrompt = imagePrompt.replace(regex, ''); });
             imagePrompt = imagePrompt.replace(/\/HomoSapien\s*$/i, '').trim();
             if (!imagePrompt) imagePrompt = "Futuristic Garuda cybernetic armor cyber punk style";
 
-            // Menggunakan Pollinations AI (Gratis, Canggih, Tanpa API Key, Sangat Cepat)
+            // Menggunakan Pollinations AI Engine (Tanpa Key, Cepat, Kualitas HD)
             const seed = Math.floor(Math.random() * 1000000);
             const generatedImageUrl = `https://image.pollinations.ai/p/${encodeURIComponent(imagePrompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
 
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
             });
         }
 
-        // ─── SYSTEM PROMPT PENGUNCI IDENTITAS MUTLAK (JIKA TEKS NORMAL) ───
+        // ─── SYSTEM PROMPT PENGUNCI IDENTITAS MUTLAK (JIKA CHAT TEKS) ───
         let systemPromptContent = `Your name is Garuda AI.
 CRITICAL IDENTITY RULES:
 1. You were created and developed by "Langitjp".
@@ -53,6 +53,7 @@ CRITICAL IDENTITY RULES:
         const systemPrompt = { role: "system", content: systemPromptContent };
         let messagesToSend = [systemPrompt];
 
+        // Filter memori agar data bersih dari flag internal sebelum dikirim ke Groq
         if (memory && Array.isArray(memory) && memory.length > 0) {
             messagesToSend = messagesToSend.concat(memory);
         }
