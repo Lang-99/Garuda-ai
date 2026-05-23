@@ -109,11 +109,13 @@
         .memory-count { margin-left: auto; font-family: var(--mono); font-size: 10px; padding: 2px 7px; border-radius: 10px; background: var(--surface2); color: var(--text3); }
         .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 10px 18px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border2); font-family: var(--mono); font-size: 11px; color: var(--text); opacity: 0; transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1); pointer-events: none; z-index: 200; white-space: nowrap; }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        .shimmer-text { background: linear-gradient(90deg, var(--text3) 0%, var(--text) 50%, var(--text3) 100%); background-size: 200% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 2s linear infinite; }
-        * { scrollbar-width: thin; scrollbar-color: #222 transparent; }
         
-        /* ─── STYLE TAMBAHAN RIWAYAT CHAT ─── */
+        /* STYLE KHUSUS CONTAINER FOTO GENERATED */
+        .generated-image-box { margin-top: 10px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border2); background: #000; position: relative; max-width: 100%; display: flex; flex-direction: column; }
+        .generated-image-box img { width: 100%; height: auto; display: block; object-fit: contain; }
+        .download-photo-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: var(--accent); color: #000; font-family: var(--mono); font-weight: 700; font-size: 11px; border: none; cursor: pointer; text-decoration: none; text-align: center; transition: background 0.2s; }
+        .download-photo-btn:hover { background: #d4ec34; }
+
         .history-container { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
         .history-item { font-size: 12px; padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); display: flex; flex-direction: column; gap: 2px; cursor: pointer; transition: all 0.15s; }
         .history-item:hover { background: var(--surface2); border-color: var(--border2); }
@@ -153,8 +155,7 @@
         </div>
         <div class="sidebar-section">
             <div class="sidebar-label">Riwayat Percakapan</div>
-            <div class="history-container" id="historyListContainer">
-                </div>
+            <div class="history-container" id="historyListContainer"></div>
         </div>
         <div class="sidebar-section">
             <div class="sidebar-label">Sesi</div>
@@ -171,7 +172,7 @@
         <header>
             <div class="logo-group">
                 <div class="logo-icon">
-                    <img src="https://kappa.lol/gf4XY9" alt="Garuda AI Core">
+                    <img src="https://kappa.lol/8AK3HC" alt="Garuda AI Core">
                 </div>
                 <div class="logo-text">
                     <div class="logo-name">GARUDA AI</div>
@@ -198,16 +199,16 @@
         <div id="chatArea">
             <div class="welcome-screen" id="welcomeScreen">
                 <div class="welcome-logo">
-                    <img src="https://kappa.lol/gf4XY9" alt="Garuda Logo">
+                    <img src="https://kappa.lol/8AK3HC" alt="Garuda Logo">
                 </div>
                 <div>
                     <div class="welcome-title">Garuda AI</div>
                     <div class="welcome-sub" style="margin-top:8px">Sistem kecerdasan buatan siap membantu Anda. Tanyakan apa saja.</div>
                 </div>
                 <div class="suggestions">
-                    <div class="suggestion-card" data-text="Jelaskan tentang kecerdasan buatan">
-                        <div class="suggestion-icon">🧠</div>
-                        <div class="suggestion-text">Jelaskan kecerdasan buatan</div>
+                    <div class="suggestion-card" data-text="Generate foto robot garuda emas futuristik cyberpunk">
+                        <div class="suggestion-icon">🎨</div>
+                        <div class="suggestion-text">Generate foto robot garuda futuristik</div>
                     </div>
                     <div class="suggestion-card" data-text="Bantu saya menulis email profesional">
                         <div class="suggestion-icon">✉️</div>
@@ -217,9 +218,9 @@
                         <div class="suggestion-icon">💻</div>
                         <div class="suggestion-text">Kode Python sorting data</div>
                     </div>
-                    <div class="suggestion-card" data-text="Apa berita teknologi terbaru?">
-                        <div class="suggestion-icon">📡</div>
-                        <div class="suggestion-text">Berita teknologi terbaru</div>
+                    <div class="suggestion-card" data-text="Jelaskan tentang kecerdasan buatan">
+                        <div class="suggestion-icon">🧠</div>
+                        <div class="suggestion-text">Jelaskan kecerdasan buatan</div>
                     </div>
                 </div>
             </div>
@@ -231,7 +232,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> CHAT
                 </div>
                 <div class="tool-chip" data-mode="search">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> CARI
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> FOTO/CARI
                 </div>
                 <div class="tool-chip" data-mode="code">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> KODE
@@ -262,7 +263,6 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // ─── STATE ───
         const state = { 
             memory: JSON.parse(localStorage.getItem('garuda_mem')) || [], 
             sessions: JSON.parse(localStorage.getItem('garuda_sessions')) || [],
@@ -271,9 +271,9 @@
             msgCount: 0 
         };
 
-        const AVATAR_URL = "https://kappa.lol/gf4XY9";
+        // AVATAR UTAMA UPDATE LOGO BARU
+        const AVATAR_URL = "https://kappa.lol/8AK3HC";
 
-        // ─── ELEMENTS ───
         const chatArea = document.getElementById('chatArea');
         const welcomeScreen = document.getElementById('welcomeScreen');
         const userInput = document.getElementById('userInput');
@@ -284,7 +284,6 @@
         const memCount = document.getElementById('memCount');
         const historyListContainer = document.getElementById('historyListContainer');
 
-        // ─── INIT ───
         updateMemCount();
         renderHistoryTabs();
         if (state.memory.length > 0) {
@@ -292,7 +291,6 @@
             restoreMemory();
         }
 
-        // ─── AUTO-RESIZE TEXTAREA ───
         userInput.addEventListener('input', () => {
             userInput.style.height = 'auto';
             userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
@@ -310,7 +308,6 @@
 
         sendBtn.addEventListener('click', handleSend);
 
-        // ─── SUGGESTION CARDS ───
         document.querySelectorAll('.suggestion-card').forEach(card => {
             card.addEventListener('click', () => {
                 userInput.value = card.dataset.text;
@@ -321,7 +318,6 @@
             });
         });
 
-        // ─── TOOLBAR MODE ───
         document.querySelectorAll('.tool-chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
@@ -329,9 +325,9 @@
                 state.mode = chip.dataset.mode;
                 const placeholders = {
                     chat: 'Masukkan perintah...',
-                    search: 'Cari sesuatu...',
+                    search: 'Ketik deskripsi foto untuk generate...',
                     code: 'Deskripsikan kode yang diinginkan...',
-                    analyze: 'Tempelkan teks untuk dianalisis...',
+                    analyze: 'Tempelkan teks atau deskripsi visual...',
                     translate: 'Masukkan teks untuk diterjemahkan...'
                 };
                 userInput.placeholder = placeholders[state.mode];
@@ -339,7 +335,6 @@
             });
         });
 
-        // ─── SIDEBAR ───
         document.getElementById('menuBtn').addEventListener('click', () => {
             sidebar.classList.add('open');
             sidebarOverlay.classList.add('open');
@@ -355,152 +350,85 @@
         }
 
         document.getElementById('clearMemoryBtn').addEventListener('click', () => {
-            state.memory = [];
-            state.sessions = [];
-            localStorage.removeItem('garuda_mem');
-            localStorage.removeItem('garuda_sessions');
-            updateMemCount();
-            renderHistoryTabs();
-            chatArea.innerHTML = '';
-            chatArea.appendChild(welcomeScreen);
+            state.memory = []; state.sessions = [];
+            localStorage.removeItem('garuda_mem'); localStorage.removeItem('garuda_sessions');
+            updateMemCount(); renderHistoryTabs();
+            chatArea.innerHTML = ''; chatArea.appendChild(welcomeScreen);
             welcomeScreen.style.display = 'flex';
-            showToast('Semua memori & riwayat dihapus ✓');
-            closeSidebar();
+            showToast('Semua memori & riwayat dihapus ✓'); closeSidebar();
         });
 
-        // TOMBOL CHAT BARU (SIMPAN OBROLAN AKTIF KE HISTORY DAN RESET)
         document.getElementById('newChatBtn').addEventListener('click', () => {
             archiveCurrentSession();
-            state.memory = [];
-            localStorage.removeItem('garuda_mem');
-            chatArea.innerHTML = '';
-            chatArea.appendChild(welcomeScreen);
+            state.memory = []; localStorage.removeItem('garuda_mem');
+            chatArea.innerHTML = ''; chatArea.appendChild(welcomeScreen);
             welcomeScreen.style.display = 'flex';
-            updateMemCount();
-            renderHistoryTabs();
-            showToast('Sesi chat baru dimulai ✓');
-            closeSidebar();
+            updateMemCount(); renderHistoryTabs();
+            showToast('Sesi chat baru dimulai ✓'); closeSidebar();
         });
 
         document.getElementById('exportChat').addEventListener('click', () => {
-            if (state.memory.length === 0) {
-                showToast('Tidak ada percakapan aktif untuk diekspor');
-                return;
-            }
+            if (state.memory.length === 0) { showToast('Tidak ada percakapan aktif'); return; }
             const msgs = state.memory.map(m => `[${m.role.toUpperCase()}]: ${m.content}`).join('\n\n');
             const blob = new Blob([msgs], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `garuda-chat-${Date.now()}.txt`;
-            a.click();
-            showToast('Chat diekspor ✓');
-            closeSidebar();
+            const a = document.createElement('a'); a.href = url; a.download = `garuda-chat-${Date.now()}.txt`; a.click();
+            showToast('Chat diekspor ✓'); closeSidebar();
         });
 
-        document.getElementById('viewMemory').addEventListener('click', () => {
-            showToast(`Menyimpan ${Math.floor(state.memory.length / 2)} konteks memori aktif.`);
-        });
-
-        document.getElementById('attachBtn').addEventListener('click', () => {
-            showToast('Fitur lampiran segera hadir 🔜');
-        });
-
-        document.getElementById('modelTag').addEventListener('click', () => {
-            showToast('Garuda Core v2.4 — aktif ⚡');
-        });
-
-        // ─── ARSIPKAN SESI AKTIF KE HISTORY ───
         function archiveCurrentSession() {
             if (state.memory.length === 0) return;
-            
-            // Cari pesan user pertama untuk dijadikan judul riwayat
             const firstUserMsg = state.memory.find(m => m.role === 'user');
-            const title = firstUserMsg ? firstUserMsg.content.replace(/^\[(CARI|KODE|ANALISIS|TERJEMAH)\]\s/, '') : 'Percakapan Tanpa Judul';
-            
+            const title = firstUserMsg ? firstUserMsg.content.substring(0, 30) + '...' : 'Percakapan Lama';
             const now = new Date();
             const timeString = now.toLocaleDateString('id-ID') + ' ' + now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-
-            const newSession = {
-                id: 'sess_' + Date.now(),
-                title: title,
-                timestamp: timeString,
-                data: [...state.memory]
-            };
-
-            state.sessions.unshift(newSession); // Tambah ke paling atas list
+            state.sessions.unshift({ id: 'sess_' + Date.now(), title, timestamp: timeString, data: [...state.memory] });
             localStorage.setItem('garuda_sessions', JSON.stringify(state.sessions));
         }
 
-        // ─── RENDER TAB DAFTAR RIWAYAT CHAT ───
         function renderHistoryTabs() {
             historyListContainer.innerHTML = '';
             if (state.sessions.length === 0) {
-                historyListContainer.innerHTML = '<div class="empty-history">Belum ada riwayat chat lama.</div>';
+                historyListContainer.innerHTML = '<div class="empty-history">Belum ada riwayat chat.</div>';
                 return;
             }
-
             state.sessions.forEach(sess => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
-                div.innerHTML = `
-                    <div class="history-title">${sess.title}</div>
-                    <div class="history-time">🕒 ${sess.timestamp}</div>
-                `;
+                div.innerHTML = `<div class="history-title">${sess.title}</div><div class="history-time">🕒 ${sess.timestamp}</div>`;
                 div.addEventListener('click', () => {
-                    // Simpan yang sekarang dulu sebelum pindah
                     archiveCurrentSession();
-                    
-                    // Muat data lama ke session aktif
                     state.memory = sess.data;
                     localStorage.setItem('garuda_mem', JSON.stringify(state.memory));
-                    
-                    // Bersihkan & Render Ulang area chat
-                    welcomeScreen.style.display = 'none';
-                    chatArea.innerHTML = '';
-                    restoreMemory();
-                    updateMemCount();
-                    
-                    // Hapus data ini dari database riwayat supaya tidak duplikat saat nanti diarsip ulang
+                    welcomeScreen.style.display = 'none'; chatArea.innerHTML = '';
+                    restoreMemory(); updateMemCount();
                     state.sessions = state.sessions.filter(s => s.id !== sess.id);
                     localStorage.setItem('garuda_sessions', JSON.stringify(state.sessions));
-                    
-                    showToast('Memuat percakapan lama ✓');
-                    closeSidebar();
+                    showToast('Memuat percakapan lama ✓'); closeSidebar();
                 });
                 historyListContainer.appendChild(div);
             });
         }
 
-        // ─── RESTORE MEMORY ───
         function restoreMemory() {
-            const pairs = [];
-            for (let i = 0; i < state.memory.length; i += 2) {
-                if (state.memory[i] && state.memory[i+1]) {
-                    const userCleanText = state.memory[i].content.replace(/^\[(CARI|KODE|ANALISIS|TERJEMAH)\]\s/, '');
-                    pairs.push({ user: userCleanText, ai: state.memory[i+1].content });
+            state.memory.forEach((m, index) => {
+                if (m.role === 'user') {
+                    appendMsg('user', m.content.replace(/^\[.*?\]\s/, ''), false);
+                } else if (m.role === 'assistant') {
+                    // Cek jika memori menyimpan objek foto lama
+                    appendMsg('ai', m.content, false, m.generated_image || null);
                 }
-            }
-            pairs.forEach(pair => {
-                appendMsg('user', pair.user, false);
-                appendMsg('ai', pair.ai, false);
             });
         }
 
-        // ─── MAIN SEND INTERACTION ───
         async function handleSend() {
             const text = userInput.value.trim();
             if (!text || state.typing) return;
 
             welcomeScreen.style.display = 'none';
-            userInput.value = '';
-            userInput.style.height = 'auto';
-            sendBtn.disabled = true;
-            charCount.textContent = '0 / 4000';
+            userInput.value = ''; userInput.style.height = 'auto';
+            sendBtn.disabled = true; charCount.textContent = '0 / 4000';
             state.typing = true;
-
-            const modePrefix = { search: '[CARI] ', code: '[KODE] ', analyze: '[ANALISIS] ', translate: '[TERJEMAH] ', chat: '' };
-            const fullText = modePrefix[state.mode] + text;
 
             appendMsg('user', text);
             const typingEl = appendTyping();
@@ -509,32 +437,34 @@
                 const res = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: fullText,
-                        memory: state.memory.slice(-10)
-                    })
+                    body: JSON.stringify({ message: text, memory: state.memory.slice(-10), mode: state.mode })
                 });
 
                 const data = await res.json();
-                const reply = data.reply || data.error || 'Sistem mengalami gangguan teknis.';
-
                 typingEl.remove();
-                appendMsg('ai', reply);
 
-                state.memory.push({ role: 'user', content: fullText }, { role: 'assistant', content: reply });
-                if (state.memory.length > 40) state.memory = state.memory.slice(-40); 
+                const reply = data.reply || data.error || 'Sistem mengalami gangguan teknis.';
+                const imgUrl = data.generated_image || null;
+
+                appendMsg('ai', reply, true, imgUrl);
+
+                // Masukkan log ke dalam memori
+                const savedAssistentMsg = { role: 'assistant', content: reply };
+                if (imgUrl) savedAssistentMsg.generated_image = imgUrl; // simpan url gambar di localstorage
+
+                state.memory.push({ role: 'user', content: text }, savedAssistentMsg);
                 localStorage.setItem('garuda_mem', JSON.stringify(state.memory));
                 updateMemCount();
 
             } catch (err) {
                 typingEl.remove();
-                appendMsg('ai', '⚠️ Koneksi terputus atau backend Vercel tidak merespon.');
+                appendMsg('ai', '⚠️ Gagal terhubung ke API Core Gateway.');
             }
             state.typing = false;
         }
 
-        // ─── APPEND MESSAGE (DENGAN AVATAR IKON BARU) ───
-        function appendMsg(role, text, animate = true) {
+        // PERBAIKAN DAN PENAMBAHAN INTEGRASI RENDER FOTO + DOWNLOAD
+        function appendMsg(role, text, animate = true, imageUrl = null) {
             state.msgCount++;
             const row = document.createElement('div');
             row.className = `msg-row ${role}`;
@@ -543,20 +473,29 @@
             const now = new Date();
             const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
             const formatted = formatText(text);
-
-            // Menerapkan ikon gambar custom pada role AI
             const avatarContent = role === 'ai' ? `<img src="${AVATAR_URL}" alt="G">` : 'U';
+
+            let imageHtmlStructure = '';
+            if (imageUrl) {
+                imageHtmlStructure = `
+                    <div class="generated-image-box">
+                        <img src="${imageUrl}" alt="Garuda AI Generated Photo">
+                        <a href="${imageUrl}" target="_blank" download="garuda-ai-photo.jpg" class="download-photo-btn">
+                            📥 DOWNLOAD FOTO (HD)
+                        </a>
+                    </div>
+                `;
+            }
 
             row.innerHTML = `
                 <div class="msg-avatar ${role === 'ai' ? 'ai' : 'user-av'}">${avatarContent}</div>
                 <div class="msg-bubble">
                     <div class="msg-name">${role === 'ai' ? 'GARUDA' : 'ANDA'}</div>
-                    <div class="msg-content">${formatted}</div>
+                    <div class="msg-content">${formatted} ${imageHtmlStructure}</div>
                     <div class="msg-meta">
                         <span class="msg-time">${time}</span>
                         <div class="msg-actions">
                             <button class="msg-action-btn copy-btn" title="Salin">📋</button>
-                            ${role === 'ai' ? '<button class="msg-action-btn" title="Suka">👍</button>' : ''}
                         </div>
                     </div>
                 </div>
@@ -571,7 +510,6 @@
             return row;
         }
 
-        // ─── APPEND TYPING (DENGAN AVATAR IKON BARU) ───
         function appendTyping() {
             const row = document.createElement('div');
             row.className = 'msg-row ai';
@@ -581,9 +519,7 @@
                     <div class="msg-name">GARUDA</div>
                     <div class="msg-content" style="padding:0">
                         <div class="typing-indicator">
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
-                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
                         </div>
                     </div>
                 </div>
@@ -593,49 +529,24 @@
             return row;
         }
 
-        // ─── FORMAT TEXT ───
         function formatText(text) {
             text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => 
                 `<div style="margin:8px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border)">
-                    ${lang ? `<div style="padding:6px 12px;background:var(--surface2);font-family:var(--mono);font-size:10px;color:var(--text2);letter-spacing:0.05em">${lang.toUpperCase()}</div>` : ''}
-                    <pre style="padding:12px;overflow-x:auto;font-family:var(--mono);font-size:12px;line-height:1.6;background:#0d0d0d;color:#a8d8a8;margin:0"><code>${escHtml(code.trim())}</code></pre>
+                    ${lang ? `<div style="padding:6px 12px;background:var(--surface2);font-family:var(--mono);font-size:10px;color:var(--text2)">${lang.toUpperCase()}</div>` : ''}
+                    <pre style="padding:12px;overflow-x:auto;font-family:var(--mono);font-size:12px;background:#0d0d0d;color:#a8d8a8;margin:0"><code>${escHtml(code.trim())}</code></pre>
                 </div>`
             );
             text = text.replace(/`([^`]+)`/g, '<code style="font-family:var(--mono);font-size:12px;background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--accent2)">$1</code>');
             text = text.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text);font-weight:600">$1</strong>');
             text = text.replace(/\*(.*?)\*/g, '<em style="color:var(--text2)">$1</em>');
-            text = text.replace(/^[-•]\s(.+)/gm, '<div style="display:flex;gap:8px;padding:2px 0"><span style="color:var(--accent);flex-shrink:0">›</span><span>$1</span></div>');
-            text = text.replace(/^\d+\.\s(.+)/gm, '<div style="display:flex;gap:8px;padding:2px 0"><span style="color:var(--accent2);font-family:var(--mono);font-size:11px;flex-shrink:0;min-width:16px">›</span><span>$1</span></div>');
-            text = text.replace(/\n\n/g, '<br><br>');
-            text = text.replace(/\n/g, '<br>');
+            text = text.replace(/^[-•]\s(.+)/gm, '<div style="display:flex;gap:8px;padding:2px 0"><span style="color:var(--accent)">›</span><span>$1</span></div>');
+            text = text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
             return text;
         }
 
-        function escHtml(t) { 
-            return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); 
-        }
-
-        // ─── TOAST ───
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2200);
-        }
-
-        // ─── UPDATE MEM COUNT ───
-        function updateMemCount() {
-            const count = Math.floor(state.memory.length / 2);
-            memCount.textContent = count;
-        }
-
-        // ─── SWIPE TO CLOSE SIDEBAR ON MOBILE ───
-        let touchStartX = 0;
-        document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-        document.addEventListener('touchend', e => {
-            const dx = e.changedTouches[0].clientX - touchStartX;
-            if (dx > 60 && sidebar.classList.contains('open')) closeSidebar();
-        }, { passive: true });
+        function escHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+        function updateMemCount() { memCount.textContent = Math.floor(state.memory.length / 2); }
     </script>
 </body>
 </html>
