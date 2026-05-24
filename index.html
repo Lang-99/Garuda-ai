@@ -376,7 +376,7 @@ let state = {
   currentId: null,
   mode: 'chat',
   typing: false,
-  msgData: [], // [{id, role, text, reactions:{emoji:count}, reacted:Set}]
+  msgData: [], 
 };
 
 // ─── ELEMENTS ───
@@ -418,7 +418,6 @@ function loadSession(id) {
   state.currentId = id;
   state.msgData = [];
   clearChatUI();
-  // Restore messages from memory
   const mem = sess.memory || [];
   for (let i = 0; i < mem.length; i += 2) {
     if (mem[i]) appendMsg('user', mem[i].content, false);
@@ -489,7 +488,6 @@ userInput.addEventListener('input', () => {
   charCount.textContent = `${len} / 4000`;
   sendBtn.disabled = len === 0;
 
-  // Typing indicator
   userTypingBar.classList.add('visible');
   clearTimeout(typingTimer);
   typingTimer = setTimeout(() => userTypingBar.classList.remove('visible'), 1200);
@@ -522,7 +520,7 @@ document.querySelectorAll('.tool-chip').forEach(chip => {
 });
 
 // ═══════════════════════════════════════════
-// MAIN SEND + STREAMING (DIUBAH KE GROQ API)
+// MAIN SEND + STREAMING (MENEMBAK KE /api/chat VERCEL)
 // ═══════════════════════════════════════════
 async function handleSend(overrideText = null, regenerate = false) {
   const text = overrideText !== null ? overrideText : userInput.value.trim();
@@ -557,18 +555,15 @@ async function handleSend(overrideText = null, regenerate = false) {
   const typingEl = appendTyping();
 
   try {
-    // Endpoint dialihkan dari Anthropic ke OpenAI-compatible Groq API endpoint
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    // API Anthropic telah DIBUANG. Sekarang mengarah ke route backend internal Vercel Anda (/api/chat)
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        // Masukkan API Key Groq Anda di sini jika menembak langsung dari client, 
-        // atau biarkan placeholder jika dilewatkan via Backend/Proxy Server Anda sendiri.
-        'Authorization': 'Bearer KUNCI_API_GROQ_ANDA'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        // Model diperbarui ke pengganti llama3-8b-8192 yang sudah tidak aktif
-        model: 'llama-3.1-8b-instant',
+        // Menggunakan standar OpenAI chat completion payload untuk Groq API di backend
+        model: 'llama-3.1-8b-instant', 
         max_tokens: 1500,
         stream: true,
         messages: [
@@ -576,7 +571,6 @@ async function handleSend(overrideText = null, regenerate = false) {
             role: 'system',
             content: `Kamu adalah Garuda AI, asisten AI canggih berbahasa Indonesia. Mode: ${state.mode}. Berikan respons yang jelas dan membantu. Untuk kode, gunakan blok kode yang rapi dengan bahasa yang sesuai.`
           },
-          // Mengirimkan konteks riwayat chat yang tersimpan
           ...((sess?.memory || []).map(m => ({
             role: m.role === 'assistant' ? 'assistant' : 'user',
             content: m.content
@@ -584,6 +578,8 @@ async function handleSend(overrideText = null, regenerate = false) {
         ]
       })
     });
+
+    if (!res.ok) throw new Error('API Error');
 
     typingEl.remove();
     const msgId = 'msg_' + Date.now();
@@ -606,7 +602,7 @@ async function handleSend(overrideText = null, regenerate = false) {
         const data = cleanedLine.slice(6);
         if (data === '[DONE]') break;
         try {
-          // Struktur data stream disesuaikan dengan format kembalian OpenAI/Groq API
+          // Parsing response stream berformat OpenAI/Groq API
           const parsed = JSON.parse(data);
           const delta = parsed.choices?.[0]?.delta?.content || '';
           if (delta) {
@@ -618,11 +614,9 @@ async function handleSend(overrideText = null, regenerate = false) {
       }
     }
 
-    // Finalize
     contentEl.innerHTML = renderMarkdown(full);
     attachCodeHandlers(contentEl);
 
-    // Save to memory
     if (sess) {
       if (regenerate && sess.memory.length >= 2) {
         sess.memory[sess.memory.length - 1] = {role:'assistant', content:full};
@@ -633,14 +627,13 @@ async function handleSend(overrideText = null, regenerate = false) {
       saveSessions();
     }
 
-    // Update msg data
     const mdat = state.msgData.find(m => m.id === msgId);
     if (mdat) mdat.text = full;
     document.getElementById('memCount').textContent = Math.floor((sess?.memory?.length||0)/2);
 
   } catch (err) {
     typingEl?.remove();
-    appendMsg('ai', '⚠️ Koneksi gagal. Periksa API key atau jaringan Anda.');
+    appendMsg('ai', '⚠️ Koneksi gagal. Periksa Environment Variables Groq di Vercel atau koneksi server proxy Anda.');
   }
   state.typing = false;
 }
@@ -684,32 +677,25 @@ function appendMsg(role, text, animate = true, forceId = null) {
     </div>
   `;
 
-  // Attach code handlers if text present
   if (text) attachCodeHandlers(row.querySelector('.msg-content'));
 
-  // Copy
   row.querySelector('.copy-msg-btn')?.addEventListener('click', () => {
     navigator.clipboard.writeText(mdat.text || text).then(() => showToast('Teks disalin ✓'));
   });
 
-  // Regen
   row.querySelector('.regen-btn')?.addEventListener('click', () => {
     if (state.typing) return;
     const sess = getCurrentSession();
     if (!sess) return;
-    // remove last AI msg from memory
     if (sess.memory.length >= 2) sess.memory.pop();
     saveSessions();
-    // remove this row
     row.remove();
     state.msgData = state.msgData.filter(m => m.id !== id);
-    // find last user message text
     const lastUser = sess.memory[sess.memory.length-1]?.content || '';
     const cleanText = lastUser.replace(/^\[.*?\] /,'');
     handleSend(cleanText, true);
   });
 
-  // Edit
   row.querySelector('.edit-msg-btn')?.addEventListener('click', () => {
     const contentEl = row.querySelector('.msg-content');
     const original = mdat.text || text;
@@ -735,7 +721,6 @@ function appendMsg(role, text, animate = true, forceId = null) {
       mdat.text = newText;
       contentEl.innerHTML = renderMarkdown(newText);
       attachCodeHandlers(contentEl);
-      // Remove subsequent messages
       const sess = getCurrentSession();
       if (sess) {
         const idx = sess.memory.findIndex(m => m.role==='user' && m.content.includes(original.slice(0,30)));
@@ -744,7 +729,6 @@ function appendMsg(role, text, animate = true, forceId = null) {
           sess.memory.push({role:'user', content:newText});
           saveSessions();
         }
-        // Remove rows after this one
         let next = row.nextElementSibling;
         while (next) {
           const n = next.nextElementSibling;
@@ -757,9 +741,7 @@ function appendMsg(role, text, animate = true, forceId = null) {
     });
   });
 
-  // Reactions
   row.querySelector('.react-btn')?.addEventListener('click', (e) => {
-    // Remove existing pickers
     document.querySelectorAll('.reaction-picker').forEach(p => p.remove());
     const picker = document.createElement('div');
     picker.className = 'reaction-picker';
@@ -844,7 +826,6 @@ function renderMarkdown(text) {
   if (!text) return '';
   let t = text;
 
-  // Code blocks (store them to prevent inner processing)
   const codeBlocks = [];
   t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
     const idx = codeBlocks.length;
@@ -852,7 +833,6 @@ function renderMarkdown(text) {
     return `__CODEBLOCK_${idx}__`;
   });
 
-  // Tables
   t = t.replace(/(\|.+\|\n\|[-| :]+\|\n(?:\|.+\|\n?)+)/g, (match) => {
     const rows = match.trim().split('\n');
     const headers = rows[0].split('|').filter(c=>c.trim()).map(c=>`<th>${c.trim()}</th>`).join('');
@@ -860,37 +840,21 @@ function renderMarkdown(text) {
     return `<table class="md-table"><thead><tr>${headers}</tr></thead><tbody>${body}</tbody></table>`;
   });
 
-  // Headings
   t = t.replace(/^### (.+)$/gm, '<div class="md-h3">$1</div>');
   t = t.replace(/^## (.+)$/gm, '<div class="md-h2">$1</div>');
   t = t.replace(/^# (.+)$/gm, '<div class="md-h1">$1</div>');
-
-  // Blockquote
   t = t.replace(/^> (.+)$/gm, '<div class="md-blockquote">$1</div>');
-
-  // HR
   t = t.replace(/^---+$/gm, '<div class="md-hr"></div>');
-
-  // Bold + Italic
   t = t.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
   t = t.replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text);font-weight:600">$1</strong>');
   t = t.replace(/\*(.+?)\*/g, '<em style="color:var(--text2)">$1</em>');
-
-  // Inline code
   t = t.replace(/`([^`]+)`/g, '<code style="font-family:var(--mono);font-size:12px;background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--accent2)">$1</code>');
-
-  // Links
   t = t.replace(/\[(.+?)\]\((.+?)\)/g, '<a class="md-link" href="$2" target="_blank">$1</a>');
-
-  // Lists
   t = t.replace(/^[-*•] (.+)$/gm, '<div class="md-list-item"><span class="md-bullet">›</span><span>$1</span></div>');
   t = t.replace(/^\d+\. (.+)$/gm, '<div class="md-list-item"><span class="md-num">›</span><span>$1</span></div>');
-
-  // Line breaks
   t = t.replace(/\n\n/g, '<br><br>');
   t = t.replace(/\n/g, '<br>');
 
-  // Restore code blocks
   t = t.replace(/__CODEBLOCK_(\d+)__/g, (_, i) => {
     const {lang, code} = codeBlocks[parseInt(i)];
     const isRunnable = ['javascript','js','python','py','html'].includes(lang.toLowerCase());
@@ -929,7 +893,6 @@ function attachCodeHandlers(container) {
       const lang = block.dataset.lang?.toLowerCase();
       let out = '', isErr = false;
 
-      // Remove previous output
       block.querySelector('.code-output')?.remove();
 
       if (lang === 'html') {
