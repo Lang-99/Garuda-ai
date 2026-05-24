@@ -108,6 +108,10 @@ header{padding:14px 18px;display:flex;align-items:center;justify-content:space-b
 .msg-row.ai .msg-content{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px 12px 12px 12px}
 .msg-row.user .msg-content{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:12px 4px 12px 12px}
 
+/* STREAMING cursor */
+.stream-cursor{display:inline-block;width:2px;height:14px;background:var(--accent);margin-left:2px;animation:blink .7s step-end infinite;vertical-align:middle}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
 /* REAL-TIME TYPING INDICATOR (user is typing) */
 .user-typing-bar{padding:4px 20px;font-family:var(--mono);font-size:10px;color:var(--text3);display:flex;align-items:center;gap:6px;height:20px;transition:opacity .3s;opacity:0}
 .user-typing-bar.visible{opacity:1}
@@ -372,7 +376,7 @@ let state = {
   currentId: null,
   mode: 'chat',
   typing: false,
-  msgData: [], 
+  msgData: [], // [{id, role, text, reactions:{emoji:count}, reacted:Set}]
 };
 
 // ─── ELEMENTS ───
@@ -414,6 +418,7 @@ function loadSession(id) {
   state.currentId = id;
   state.msgData = [];
   clearChatUI();
+  // Restore messages from memory
   const mem = sess.memory || [];
   for (let i = 0; i < mem.length; i += 2) {
     if (mem[i]) appendMsg('user', mem[i].content, false);
@@ -475,32 +480,25 @@ document.getElementById('histSearch').addEventListener('input', renderHistList);
 document.getElementById('histNewBtn').addEventListener('click', () => { newSession(); });
 
 // ═══════════════════════════════════════════
-// INPUT & SEND FIX (Mencegah tombol kirim macet)
+// INPUT & SEND
 // ═══════════════════════════════════════════
 userInput.addEventListener('input', () => {
   userInput.style.height = 'auto';
   userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
-  
-  const val = userInput.value.trim();
-  charCount.textContent = `${userInput.value.length} / 4000`;
-  
-  // Perbaikan Tombol Kirim: Langsung nyala kalau ada ketikan teks
-  sendBtn.disabled = (val.length === 0);
+  const len = userInput.value.length;
+  charCount.textContent = `${len} / 4000`;
+  sendBtn.disabled = len === 0;
 
-  // Efek mengetik real-time
-  if (val.length > 0) {
-    userTypingBar.classList.add('visible');
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(() => userTypingBar.classList.remove('visible'), 1200);
-  } else {
-    userTypingBar.classList.remove('visible');
-  }
+  // Typing indicator
+  userTypingBar.classList.add('visible');
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => userTypingBar.classList.remove('visible'), 1200);
 });
 
 userInput.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!sendBtn.disabled) handleSend(); }
 });
-sendBtn.addEventListener('click', () => handleSend());
+sendBtn.addEventListener('click', handleSend);
 
 document.querySelectorAll('.suggestion-card').forEach(c => {
   c.addEventListener('click', () => {
@@ -524,7 +522,7 @@ document.querySelectorAll('.tool-chip').forEach(chip => {
 });
 
 // ═══════════════════════════════════════════
-// MAIN SEND (Vercel Route Sync)
+// MAIN SEND + STREAMING (DIUBAH KE GROQ API)
 // ═══════════════════════════════════════════
 async function handleSend(overrideText = null, regenerate = false) {
   const text = overrideText !== null ? overrideText : userInput.value.trim();
@@ -559,11 +557,31 @@ async function handleSend(overrideText = null, regenerate = false) {
   const typingEl = appendTyping();
 
   try {
-    const res = await fetch('/api/chat', {
+    // Endpoint dialihkan dari Anthropic ke OpenAI-compatible Groq API endpoint
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        // Masukkan API Key Groq Anda di sini jika menembak langsung dari client, 
+        // atau biarkan placeholder jika dilewatkan via Backend/Proxy Server Anda sendiri.
+        'Authorization': 'Bearer KUNCI_API_GROQ_ANDA'
+      },
       body: JSON.stringify({
-        message: fullText 
+        // Model diperbarui ke pengganti llama3-8b-8192 yang sudah tidak aktif
+        model: 'llama-3.1-8b-instant',
+        max_tokens: 1500,
+        stream: true,
+        messages: [
+          {
+            role: 'system',
+            content: `Kamu adalah Garuda AI, asisten AI canggih berbahasa Indonesia. Mode: ${state.mode}. Berikan respons yang jelas dan membantu. Untuk kode, gunakan blok kode yang rapi dengan bahasa yang sesuai.`
+          },
+          // Mengirimkan konteks riwayat chat yang tersimpan
+          ...((sess?.memory || []).map(m => ({
+            role: m.role === 'assistant' ? 'assistant' : 'user',
+            content: m.content
+          })))
+        ]
       })
     });
 
@@ -571,13 +589,40 @@ async function handleSend(overrideText = null, regenerate = false) {
     const msgId = 'msg_' + Date.now();
     const aiRow = appendMsg('ai', '', true, msgId);
     const contentEl = aiRow.querySelector('.msg-content');
+    contentEl.innerHTML = '<span class="stream-cursor"></span>';
 
-    const data = await res.json();
-    let full = data.reply || "Gagal mendapatkan respon dari server.";
+    let full = '';
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
 
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+      for (const line of lines) {
+        const cleanedLine = line.trim();
+        if (!cleanedLine.startsWith('data: ')) continue;
+        const data = cleanedLine.slice(6);
+        if (data === '[DONE]') break;
+        try {
+          // Struktur data stream disesuaikan dengan format kembalian OpenAI/Groq API
+          const parsed = JSON.parse(data);
+          const delta = parsed.choices?.[0]?.delta?.content || '';
+          if (delta) {
+            full += delta;
+            contentEl.innerHTML = renderMarkdown(full) + '<span class="stream-cursor"></span>';
+            chatArea.scrollTo({top: chatArea.scrollHeight, behavior: 'smooth'});
+          }
+        } catch {}
+      }
+    }
+
+    // Finalize
     contentEl.innerHTML = renderMarkdown(full);
     attachCodeHandlers(contentEl);
 
+    // Save to memory
     if (sess) {
       if (regenerate && sess.memory.length >= 2) {
         sess.memory[sess.memory.length - 1] = {role:'assistant', content:full};
@@ -588,13 +633,14 @@ async function handleSend(overrideText = null, regenerate = false) {
       saveSessions();
     }
 
+    // Update msg data
     const mdat = state.msgData.find(m => m.id === msgId);
     if (mdat) mdat.text = full;
     document.getElementById('memCount').textContent = Math.floor((sess?.memory?.length||0)/2);
 
   } catch (err) {
     typingEl?.remove();
-    appendMsg('ai', '⚠️ Hubungan ke Core System terputus. Pastikan deployment Vercel Anda berjalan normal.');
+    appendMsg('ai', '⚠️ Koneksi gagal. Periksa API key atau jaringan Anda.');
   }
   state.typing = false;
 }
@@ -638,25 +684,32 @@ function appendMsg(role, text, animate = true, forceId = null) {
     </div>
   `;
 
+  // Attach code handlers if text present
   if (text) attachCodeHandlers(row.querySelector('.msg-content'));
 
+  // Copy
   row.querySelector('.copy-msg-btn')?.addEventListener('click', () => {
     navigator.clipboard.writeText(mdat.text || text).then(() => showToast('Teks disalin ✓'));
   });
 
+  // Regen
   row.querySelector('.regen-btn')?.addEventListener('click', () => {
     if (state.typing) return;
     const sess = getCurrentSession();
     if (!sess) return;
+    // remove last AI msg from memory
     if (sess.memory.length >= 2) sess.memory.pop();
     saveSessions();
+    // remove this row
     row.remove();
     state.msgData = state.msgData.filter(m => m.id !== id);
+    // find last user message text
     const lastUser = sess.memory[sess.memory.length-1]?.content || '';
     const cleanText = lastUser.replace(/^\[.*?\] /,'');
     handleSend(cleanText, true);
   });
 
+  // Edit
   row.querySelector('.edit-msg-btn')?.addEventListener('click', () => {
     const contentEl = row.querySelector('.msg-content');
     const original = mdat.text || text;
@@ -682,6 +735,7 @@ function appendMsg(role, text, animate = true, forceId = null) {
       mdat.text = newText;
       contentEl.innerHTML = renderMarkdown(newText);
       attachCodeHandlers(contentEl);
+      // Remove subsequent messages
       const sess = getCurrentSession();
       if (sess) {
         const idx = sess.memory.findIndex(m => m.role==='user' && m.content.includes(original.slice(0,30)));
@@ -690,6 +744,7 @@ function appendMsg(role, text, animate = true, forceId = null) {
           sess.memory.push({role:'user', content:newText});
           saveSessions();
         }
+        // Remove rows after this one
         let next = row.nextElementSibling;
         while (next) {
           const n = next.nextElementSibling;
@@ -702,7 +757,9 @@ function appendMsg(role, text, animate = true, forceId = null) {
     });
   });
 
+  // Reactions
   row.querySelector('.react-btn')?.addEventListener('click', (e) => {
+    // Remove existing pickers
     document.querySelectorAll('.reaction-picker').forEach(p => p.remove());
     const picker = document.createElement('div');
     picker.className = 'reaction-picker';
@@ -787,6 +844,7 @@ function renderMarkdown(text) {
   if (!text) return '';
   let t = text;
 
+  // Code blocks (store them to prevent inner processing)
   const codeBlocks = [];
   t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
     const idx = codeBlocks.length;
@@ -794,6 +852,7 @@ function renderMarkdown(text) {
     return `__CODEBLOCK_${idx}__`;
   });
 
+  // Tables
   t = t.replace(/(\|.+\|\n\|[-| :]+\|\n(?:\|.+\|\n?)+)/g, (match) => {
     const rows = match.trim().split('\n');
     const headers = rows[0].split('|').filter(c=>c.trim()).map(c=>`<th>${c.trim()}</th>`).join('');
@@ -801,22 +860,37 @@ function renderMarkdown(text) {
     return `<table class="md-table"><thead><tr>${headers}</tr></thead><tbody>${body}</tbody></table>`;
   });
 
+  // Headings
   t = t.replace(/^### (.+)$/gm, '<div class="md-h3">$1</div>');
   t = t.replace(/^## (.+)$/gm, '<div class="md-h2">$1</div>');
   t = t.replace(/^# (.+)$/gm, '<div class="md-h1">$1</div>');
+
+  // Blockquote
   t = t.replace(/^> (.+)$/gm, '<div class="md-blockquote">$1</div>');
+
+  // HR
   t = t.replace(/^---+$/gm, '<div class="md-hr"></div>');
+
+  // Bold + Italic
   t = t.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
   t = t.replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text);font-weight:600">$1</strong>');
   t = t.replace(/\*(.+?)\*/g, '<em style="color:var(--text2)">$1</em>');
+
+  // Inline code
   t = t.replace(/`([^`]+)`/g, '<code style="font-family:var(--mono);font-size:12px;background:var(--surface2);padding:2px 6px;border-radius:4px;color:var(--accent2)">$1</code>');
+
+  // Links
   t = t.replace(/\[(.+?)\]\((.+?)\)/g, '<a class="md-link" href="$2" target="_blank">$1</a>');
+
+  // Lists
   t = t.replace(/^[-*•] (.+)$/gm, '<div class="md-list-item"><span class="md-bullet">›</span><span>$1</span></div>');
   t = t.replace(/^\d+\. (.+)$/gm, '<div class="md-list-item"><span class="md-num">›</span><span>$1</span></div>');
 
+  // Line breaks
   t = t.replace(/\n\n/g, '<br><br>');
   t = t.replace(/\n/g, '<br>');
 
+  // Restore code blocks
   t = t.replace(/__CODEBLOCK_(\d+)__/g, (_, i) => {
     const {lang, code} = codeBlocks[parseInt(i)];
     const isRunnable = ['javascript','js','python','py','html'].includes(lang.toLowerCase());
@@ -855,6 +929,7 @@ function attachCodeHandlers(container) {
       const lang = block.dataset.lang?.toLowerCase();
       let out = '', isErr = false;
 
+      // Remove previous output
       block.querySelector('.code-output')?.remove();
 
       if (lang === 'html') {
@@ -945,9 +1020,6 @@ function startListening() {
   recognition.start();
 }
 
-// ═══════════════════════════════════════════
-// SIDEBAR LOGIC & UTILS
-// ═══════════════════════════════════════════
 function stopListening() {
   isListening = false;
   recognition?.stop();
@@ -956,6 +1028,9 @@ function stopListening() {
   document.getElementById('voiceBtn').classList.remove('recording');
 }
 
+// ═══════════════════════════════════════════
+// SIDEBAR LOGIC
+// ═══════════════════════════════════════════
 document.getElementById('histBtn').addEventListener('click', () => {
   histSidebar.classList.add('open');
   overlay.classList.add('open');
@@ -991,6 +1066,9 @@ document.getElementById('sbExport').addEventListener('click', () => {
   showToast('Chat diekspor ✓');
 });
 
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
 function escHtml(t) {
   return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -1002,6 +1080,7 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
+// Swipe gestures
 let touchStartX = 0;
 document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX, {passive:true});
 document.addEventListener('touchend', e => {
