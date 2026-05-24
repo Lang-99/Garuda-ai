@@ -108,10 +108,6 @@ header{padding:14px 18px;display:flex;align-items:center;justify-content:space-b
 .msg-row.ai .msg-content{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px 12px 12px 12px}
 .msg-row.user .msg-content{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:12px 4px 12px 12px}
 
-/* STREAMING cursor */
-.stream-cursor{display:inline-block;width:2px;height:14px;background:var(--accent);margin-left:2px;animation:blink .7s step-end infinite;vertical-align:middle}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-
 /* REAL-TIME TYPING INDICATOR (user is typing) */
 .user-typing-bar{padding:4px 20px;font-family:var(--mono);font-size:10px;color:var(--text3);display:flex;align-items:center;gap:6px;height:20px;transition:opacity .3s;opacity:0}
 .user-typing-bar.visible{opacity:1}
@@ -376,7 +372,7 @@ let state = {
   currentId: null,
   mode: 'chat',
   typing: false,
-  msgData: [], // [{id, role, text, reactions:{emoji:count}, reacted:Set}]
+  msgData: [], 
 };
 
 // ─── ELEMENTS ───
@@ -418,7 +414,6 @@ function loadSession(id) {
   state.currentId = id;
   state.msgData = [];
   clearChatUI();
-  // Restore messages from memory
   const mem = sess.memory || [];
   for (let i = 0; i < mem.length; i += 2) {
     if (mem[i]) appendMsg('user', mem[i].content, false);
@@ -480,25 +475,32 @@ document.getElementById('histSearch').addEventListener('input', renderHistList);
 document.getElementById('histNewBtn').addEventListener('click', () => { newSession(); });
 
 // ═══════════════════════════════════════════
-// INPUT & SEND
+// INPUT & SEND FIX (Mencegah tombol kirim macet)
 // ═══════════════════════════════════════════
 userInput.addEventListener('input', () => {
   userInput.style.height = 'auto';
   userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
-  const len = userInput.value.length;
-  charCount.textContent = `${len} / 4000`;
-  sendBtn.disabled = len === 0;
+  
+  const val = userInput.value.trim();
+  charCount.textContent = `${userInput.value.length} / 4000`;
+  
+  // Perbaikan Tombol Kirim: Langsung nyala kalau ada ketikan teks
+  sendBtn.disabled = (val.length === 0);
 
-  // Typing indicator
-  userTypingBar.classList.add('visible');
-  clearTimeout(typingTimer);
-  typingTimer = setTimeout(() => userTypingBar.classList.remove('visible'), 1200);
+  // Efek mengetik real-time
+  if (val.length > 0) {
+    userTypingBar.classList.add('visible');
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => userTypingBar.classList.remove('visible'), 1200);
+  } else {
+    userTypingBar.classList.remove('visible');
+  }
 });
 
 userInput.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!sendBtn.disabled) handleSend(); }
 });
-sendBtn.addEventListener('click', handleSend);
+sendBtn.addEventListener('click', () => handleSend());
 
 document.querySelectorAll('.suggestion-card').forEach(c => {
   c.addEventListener('click', () => {
@@ -522,7 +524,7 @@ document.querySelectorAll('.tool-chip').forEach(chip => {
 });
 
 // ═══════════════════════════════════════════
-// MAIN SEND + STREAMING (SINKRON BACKEND VERCEL)
+// MAIN SEND (Vercel Route Sync)
 // ═══════════════════════════════════════════
 async function handleSend(overrideText = null, regenerate = false) {
   const text = overrideText !== null ? overrideText : userInput.value.trim();
@@ -557,7 +559,6 @@ async function handleSend(overrideText = null, regenerate = false) {
   const typingEl = appendTyping();
 
   try {
-    // Jalur tembak langsung diarahkan ke backend Vercel local route
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
@@ -574,11 +575,9 @@ async function handleSend(overrideText = null, regenerate = false) {
     const data = await res.json();
     let full = data.reply || "Gagal mendapatkan respon dari server.";
 
-    // Render jawaban utuh dari backend (Mendukung proteksi Langitjp / mode /HomoSapien)
     contentEl.innerHTML = renderMarkdown(full);
     attachCodeHandlers(contentEl);
 
-    // Save ke memory lokal browser
     if (sess) {
       if (regenerate && sess.memory.length >= 2) {
         sess.memory[sess.memory.length - 1] = {role:'assistant', content:full};
@@ -589,7 +588,6 @@ async function handleSend(overrideText = null, regenerate = false) {
       saveSessions();
     }
 
-    // Update state pesan lokal
     const mdat = state.msgData.find(m => m.id === msgId);
     if (mdat) mdat.text = full;
     document.getElementById('memCount').textContent = Math.floor((sess?.memory?.length||0)/2);
