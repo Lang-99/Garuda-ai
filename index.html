@@ -204,6 +204,8 @@ footer{padding:10px 16px 18px;flex-shrink:0;border-top:1px solid var(--border);b
 .ia-btn svg{width:14px;height:14px}
 .ia-btn.recording{border-color:var(--accent3);color:var(--accent3);background:rgba(255,107,53,.1);animation:recPulse 1s ease-in-out infinite}
 @keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,53,.3)}50%{box-shadow:0 0 0 6px rgba(255,107,53,0)}}
+
+/* KUNCI PERBAIKAN UTAMA: DI SINI ATRIBUT disabled DIHAPUS TOTAL AGAR TOMBOL SEJAK AWAL BISA DIPENCET */
 #sendBtn{width:34px;height:34px;border-radius:9px;border:none;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s cubic-bezier(.2,.8,.2,1);flex-shrink:0}
 #sendBtn:hover{transform:scale(1.05);box-shadow:0 4px 16px rgba(232,255,71,.3)}
 #sendBtn:active{transform:scale(.95)}
@@ -355,7 +357,7 @@ footer{padding:10px 16px 18px;flex-shrink:0;border-top:1px solid var(--border);b
         <button class="ia-btn" id="voiceBtn" title="Voice Input">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </button>
-        <button id="sendBtn" disabled>
+        <button id="sendBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </div>
@@ -396,6 +398,9 @@ let typingTimer = null;
 if (!state.sessions.length) newSession();
 else loadSession(state.sessions[0].id);
 renderHistList();
+
+// PROTEKSI AWALAN: Supaya kalau teks kosong pas pertama load gak bisa ngirim kosong
+sendBtn.disabled = userInput.value.trim().length === 0;
 
 // ═══════════════════════════════════════════
 // SESSIONS / HISTORY
@@ -526,7 +531,7 @@ document.querySelectorAll('.tool-chip').forEach(chip => {
 });
 
 // ═══════════════════════════════════════════
-// MAIN SEND + STREAMING FIX
+// MAIN SEND
 // ═══════════════════════════════════════════
 async function handleSend(overrideText = null, regenerate = false) {
   const text = overrideText !== null ? overrideText : userInput.value.trim();
@@ -635,7 +640,6 @@ async function handleSend(overrideText = null, regenerate = false) {
     typingEl?.remove();
     appendMsg('ai', '⚠️ Koneksi gagal. Pastikan Server Proxy Backend `/api/chat` di Vercel sudah aktif dan Env Groq API Key terpasang dengan benar.');
   } finally {
-    // PROTEKSI UTAMA: Apapun yang terjadi (sukses maupun error), matikan status mengetik dan buka kunci tombol kirim
     state.typing = false;
     sendBtn.disabled = userInput.value.trim().length === 0;
   }
