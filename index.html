@@ -112,7 +112,7 @@ header{padding:14px 18px;display:flex;align-items:center;justify-content:space-b
 .stream-cursor{display:inline-block;width:2px;height:14px;background:var(--accent);margin-left:2px;animation:blink .7s step-end infinite;vertical-align:middle}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
-/* REAL-TIME TYPING INDICATOR (user is typing) */
+/* REAL-TIME TYPING INDICATOR */
 .user-typing-bar{padding:4px 20px;font-family:var(--mono);font-size:10px;color:var(--text3);display:flex;align-items:center;gap:6px;height:20px;transition:opacity .3s;opacity:0}
 .user-typing-bar.visible{opacity:1}
 .ut-dots{display:flex;gap:3px}
@@ -494,12 +494,18 @@ userInput.addEventListener('input', () => {
 });
 
 userInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!sendBtn.disabled) handleSend(); }
+  if (e.key === 'Enter' && !e.shiftKey) { 
+    e.preventDefault(); 
+    if (userInput.value.trim().length > 0 && !state.typing) handleSend(); 
+  }
 });
-sendBtn.addEventListener('click', handleSend);
+sendBtn.addEventListener('click', () => {
+  if (userInput.value.trim().length > 0 && !state.typing) handleSend();
+});
 
 document.querySelectorAll('.suggestion-card').forEach(c => {
   c.addEventListener('click', () => {
+    if (state.typing) return;
     userInput.value = c.dataset.text;
     userInput.style.height = 'auto';
     sendBtn.disabled = false;
@@ -520,11 +526,11 @@ document.querySelectorAll('.tool-chip').forEach(chip => {
 });
 
 // ═══════════════════════════════════════════
-// MAIN SEND + STREAMING (MENEMBAK KE /api/chat VERCEL)
+// MAIN SEND + STREAMING FIX
 // ═══════════════════════════════════════════
 async function handleSend(overrideText = null, regenerate = false) {
   const text = overrideText !== null ? overrideText : userInput.value.trim();
-  if (!text || state.typing) return;
+  if (!text) return;
 
   welcomeScreen.style.display = 'none';
   if (!overrideText) {
@@ -555,21 +561,17 @@ async function handleSend(overrideText = null, regenerate = false) {
   const typingEl = appendTyping();
 
   try {
-    // API Anthropic telah DIBUANG. Sekarang mengarah ke route backend internal Vercel Anda (/api/chat)
     const res = await fetch('/api/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        // Menggunakan standar OpenAI chat completion payload untuk Groq API di backend
         model: 'llama-3.1-8b-instant', 
         max_tokens: 1500,
         stream: true,
         messages: [
           {
             role: 'system',
-            content: `Kamu adalah Garuda AI, asisten AI canggih berbahasa Indonesia. Mode: ${state.mode}. Berikan respons yang jelas dan membantu. Untuk kode, gunakan blok kode yang rapi dengan bahasa yang sesuai.`
+            content: `Kamu adalah Garuda AI, asisten AI canggih berbahasa Indonesia. Mode: ${state.mode}. Berikan respons yang jelas dan membantu.`
           },
           ...((sess?.memory || []).map(m => ({
             role: m.role === 'assistant' ? 'assistant' : 'user',
@@ -581,7 +583,7 @@ async function handleSend(overrideText = null, regenerate = false) {
 
     if (!res.ok) throw new Error('API Error');
 
-    typingEl.remove();
+    typingEl?.remove();
     const msgId = 'msg_' + Date.now();
     const aiRow = appendMsg('ai', '', true, msgId);
     const contentEl = aiRow.querySelector('.msg-content');
@@ -602,7 +604,6 @@ async function handleSend(overrideText = null, regenerate = false) {
         const data = cleanedLine.slice(6);
         if (data === '[DONE]') break;
         try {
-          // Parsing response stream berformat OpenAI/Groq API
           const parsed = JSON.parse(data);
           const delta = parsed.choices?.[0]?.delta?.content || '';
           if (delta) {
@@ -610,7 +611,7 @@ async function handleSend(overrideText = null, regenerate = false) {
             contentEl.innerHTML = renderMarkdown(full) + '<span class="stream-cursor"></span>';
             chatArea.scrollTo({top: chatArea.scrollHeight, behavior: 'smooth'});
           }
-        } catch {}
+        } catch(e){}
       }
     }
 
@@ -623,7 +624,6 @@ async function handleSend(overrideText = null, regenerate = false) {
       } else {
         sess.memory.push({role:'assistant', content:full});
       }
-      if (sess.memory.length > 40) sess.memory = sess.memory.slice(-40);
       saveSessions();
     }
 
@@ -633,9 +633,12 @@ async function handleSend(overrideText = null, regenerate = false) {
 
   } catch (err) {
     typingEl?.remove();
-    appendMsg('ai', '⚠️ Koneksi gagal. Periksa Environment Variables Groq di Vercel atau koneksi server proxy Anda.');
+    appendMsg('ai', '⚠️ Koneksi gagal. Pastikan Server Proxy Backend `/api/chat` di Vercel sudah aktif dan Env Groq API Key terpasang dengan benar.');
+  } finally {
+    // PROTEKSI UTAMA: Apapun yang terjadi (sukses maupun error), matikan status mengetik dan buka kunci tombol kirim
+    state.typing = false;
+    sendBtn.disabled = userInput.value.trim().length === 0;
   }
-  state.typing = false;
 }
 
 // ═══════════════════════════════════════════
@@ -797,9 +800,7 @@ function renderReactions(msgId, mdat) {
   });
 }
 
-// ═══════════════════════════════════════════
-// TYPING INDICATOR (AI)
-// ═══════════════════════════════════════════
+// ─── TYPING INDICATOR AI ───
 function appendTyping() {
   const row = document.createElement('div');
   row.className = 'msg-row ai';
@@ -819,9 +820,7 @@ function appendTyping() {
   return row;
 }
 
-// ═══════════════════════════════════════════
-// MARKDOWN RENDERER
-// ═══════════════════════════════════════════
+// ─── MARKDOWN RENDERER ───
 function renderMarkdown(text) {
   if (!text) return '';
   let t = text;
@@ -857,7 +856,7 @@ function renderMarkdown(text) {
 
   t = t.replace(/__CODEBLOCK_(\d+)__/g, (_, i) => {
     const {lang, code} = codeBlocks[parseInt(i)];
-    const isRunnable = ['javascript','js','python','py','html'].includes(lang.toLowerCase());
+    const isRunnable = ['javascript','js','html'].includes(lang.toLowerCase());
     return `<div class="code-block" data-lang="${lang}" data-code="${encodeURIComponent(code)}">
       <div class="code-header">
         <span class="code-lang">${lang.toUpperCase()}</span>
@@ -910,9 +909,6 @@ function attachCodeHandlers(container) {
         catch (e) { logs.push('Error: ' + e.message); isErr = true; }
         console.log = origLog;
         out = logs.join('\n') || '(tidak ada output)';
-      } else if (['python','py'].includes(lang)) {
-        out = '⚡ Python execution membutuhkan backend. Gunakan mode KODE untuk generate code.';
-        isErr = true;
       }
 
       const outDiv = document.createElement('div');
@@ -923,25 +919,13 @@ function attachCodeHandlers(container) {
   });
 }
 
-// ═══════════════════════════════════════════
-// VOICE INPUT
-// ═══════════════════════════════════════════
+// ─── VOICE INPUT ───
 let recognition = null;
 let isListening = false;
 
-document.getElementById('voiceBtn').addEventListener('click', () => {
-  voiceModal.classList.add('open');
-});
-
-document.getElementById('voiceClose').addEventListener('click', () => {
-  stopListening();
-  voiceModal.classList.remove('open');
-});
-
-document.getElementById('voiceOrb').addEventListener('click', () => {
-  if (isListening) stopListening();
-  else startListening();
-});
+document.getElementById('voiceBtn').addEventListener('click', () => { voiceModal.classList.add('open'); });
+document.getElementById('voiceClose').addEventListener('click', () => { stopListening(); voiceModal.classList.remove('open'); });
+document.getElementById('voiceOrb').addEventListener('click', () => { if (isListening) stopListening(); else startListening(); });
 
 function startListening() {
   if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -974,11 +958,7 @@ function startListening() {
     }
   };
 
-  recognition.onerror = (e) => {
-    document.getElementById('voiceStatus').textContent = 'Error: ' + e.error;
-    stopListening();
-  };
-
+  recognition.onerror = () => stopListening();
   recognition.onend = () => stopListening();
   recognition.start();
 }
@@ -991,18 +971,10 @@ function stopListening() {
   document.getElementById('voiceBtn').classList.remove('recording');
 }
 
-// ═══════════════════════════════════════════
-// SIDEBAR LOGIC
-// ═══════════════════════════════════════════
-document.getElementById('histBtn').addEventListener('click', () => {
-  histSidebar.classList.add('open');
-  overlay.classList.add('open');
-});
+// ─── SIDEBAR LOGIC ───
+document.getElementById('histBtn').addEventListener('click', () => { histSidebar.classList.add('open'); overlay.classList.add('open'); });
 document.getElementById('closeHist').addEventListener('click', closeAllSidebars);
-document.getElementById('menuBtn').addEventListener('click', () => {
-  rSidebar.classList.add('open');
-  overlay.classList.add('open');
-});
+document.getElementById('menuBtn').addEventListener('click', () => { rSidebar.classList.add('open'); overlay.classList.add('open'); });
 document.getElementById('closeRSidebar').addEventListener('click', closeAllSidebars);
 overlay.addEventListener('click', closeAllSidebars);
 
@@ -1029,32 +1001,17 @@ document.getElementById('sbExport').addEventListener('click', () => {
   showToast('Chat diekspor ✓');
 });
 
-// ═══════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════
-function escHtml(t) {
-  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
-}
+function escHtml(t) { return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
 
 // Swipe gestures
 let touchStartX = 0;
 document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX, {passive:true});
 document.addEventListener('touchend', e => {
   const dx = e.changedTouches[0].clientX - touchStartX;
-  if (dx > 60 && !histSidebar.classList.contains('open') && !rSidebar.classList.contains('open')) {
-    histSidebar.classList.add('open'); overlay.classList.add('open');
-  }
+  if (dx > 60 && !histSidebar.classList.contains('open') && !rSidebar.classList.contains('open')) { histSidebar.classList.add('open'); overlay.classList.add('open'); }
   if (dx < -60 && histSidebar.classList.contains('open')) closeAllSidebars();
-  if (dx < -60 && !rSidebar.classList.contains('open') && !histSidebar.classList.contains('open')) {
-    rSidebar.classList.add('open'); overlay.classList.add('open');
-  }
+  if (dx < -60 && !rSidebar.classList.contains('open') && !histSidebar.classList.contains('open')) { rSidebar.classList.add('open'); overlay.classList.add('open'); }
   if (dx > 60 && rSidebar.classList.contains('open')) closeAllSidebars();
 }, {passive:true});
 </script>
