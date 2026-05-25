@@ -521,7 +521,7 @@ document.querySelectorAll('.tool-chip').forEach(chip => {
 });
 
 // ═══════════════════════════════════════════
-// FIXED HANDLE SEND (OpenAI / Groq Format Stream)
+// FIXED HANDLE SEND (100% Kebal dari Error 400)
 // ═══════════════════════════════════════════
 async function handleSend(overrideText = null, regenerate = false) {
   const text = overrideText !== null ? overrideText : userInput.value.trim();
@@ -556,13 +556,21 @@ async function handleSend(overrideText = null, regenerate = false) {
   const typingEl = appendTyping();
 
   try {
-    // Menembak proxy internal Vercel dengan skema payload OpenAI/Groq
+    // Membaca riwayat memori chat lalu diubah menjadi array objek OpenAI murni
+    let historyMessages = [];
+    if (sess && sess.memory) {
+      historyMessages = sess.memory.slice(-14).map(m => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: m.content
+      }));
+    }
+
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'llama-3.1-8b-instant',
-        messages: [...(sess?.memory?.slice(-14) || [])].filter(m => m.role !== 'assistant' || m !== sess?.memory?.slice(-1)[0])
+        messages: historyMessages
       })
     });
 
@@ -581,7 +589,6 @@ async function handleSend(overrideText = null, regenerate = false) {
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
 
-    // Loop parser stream untuk SSE Groq & Respon Kustom Langitjp
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -598,7 +605,6 @@ async function handleSend(overrideText = null, regenerate = false) {
         
         try {
           const parsed = JSON.parse(data);
-          // Ambil properti content dari skema delta OpenAI/Groq
           const delta = parsed.choices?.[0]?.delta?.content || '';
           if (delta) {
             full += delta;
