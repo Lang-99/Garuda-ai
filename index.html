@@ -205,7 +205,6 @@ footer{padding:10px 16px 18px;flex-shrink:0;border-top:1px solid var(--border);b
 .ia-btn.recording{border-color:var(--accent3);color:var(--accent3);background:rgba(255,107,53,.1);animation:recPulse 1s ease-in-out infinite}
 @keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,53,.3)}50%{box-shadow:0 0 0 6px rgba(255,107,53,0)}}
 
-/* KUNCI PERBAIKAN UTAMA: DI SINI ATRIBUT disabled DIHAPUS TOTAL AGAR TOMBOL SEJAK AWAL BISA DIPENCET */
 #sendBtn{width:34px;height:34px;border-radius:9px;border:none;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s cubic-bezier(.2,.8,.2,1);flex-shrink:0}
 #sendBtn:hover{transform:scale(1.05);box-shadow:0 4px 16px rgba(232,255,71,.3)}
 #sendBtn:active{transform:scale(.95)}
@@ -381,7 +380,6 @@ let state = {
   msgData: [], 
 };
 
-// ─── ELEMENTS ───
 const chatArea = document.getElementById('chatArea');
 const welcomeScreen = document.getElementById('welcomeScreen');
 const userInput = document.getElementById('userInput');
@@ -394,17 +392,12 @@ const voiceModal = document.getElementById('voiceModal');
 const userTypingBar = document.getElementById('userTypingBar');
 let typingTimer = null;
 
-// ─── INIT ───
 if (!state.sessions.length) newSession();
 else loadSession(state.sessions[0].id);
 renderHistList();
 
-// PROTEKSI AWALAN: Supaya kalau teks kosong pas pertama load gak bisa ngirim kosong
 sendBtn.disabled = userInput.value.trim().length === 0;
 
-// ═══════════════════════════════════════════
-// SESSIONS / HISTORY
-// ═══════════════════════════════════════════
 function newSession(silent = false) {
   const id = 'sess_' + Date.now();
   const sess = { id, title: 'Chat Baru', ts: Date.now(), memory: [] };
@@ -483,9 +476,6 @@ function deleteSession(id) {
 document.getElementById('histSearch').addEventListener('input', renderHistList);
 document.getElementById('histNewBtn').addEventListener('click', () => { newSession(); });
 
-// ═══════════════════════════════════════════
-// INPUT & SEND
-// ═══════════════════════════════════════════
 userInput.addEventListener('input', () => {
   userInput.style.height = 'auto';
   userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
@@ -531,7 +521,7 @@ document.querySelectorAll('.tool-chip').forEach(chip => {
 });
 
 // ═══════════════════════════════════════════
-// MAIN SEND
+// FIXED HANDLE SEND (OpenAI / Groq Format Stream)
 // ═══════════════════════════════════════════
 async function handleSend(overrideText = null, regenerate = false) {
   const text = overrideText !== null ? overrideText : userInput.value.trim();
@@ -566,29 +556,22 @@ async function handleSend(overrideText = null, regenerate = false) {
   const typingEl = appendTyping();
 
   try {
+    // Menembak proxy internal Vercel dengan skema payload OpenAI/Groq
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant', 
-        max_tokens: 1500,
-        stream: true,
-        messages: [
-          {
-            role: 'system',
-            content: `Kamu adalah Garuda AI, asisten AI canggih berbahasa Indonesia. Mode: ${state.mode}. Berikan respons yang jelas dan membantu.`
-          },
-          ...((sess?.memory || []).map(m => ({
-            role: m.role === 'assistant' ? 'assistant' : 'user',
-            content: m.content
-          })))
-        ]
+        model: 'llama-3.1-8b-instant',
+        messages: [...(sess?.memory?.slice(-14) || [])].filter(m => m.role !== 'assistant' || m !== sess?.memory?.slice(-1)[0])
       })
     });
 
-    if (!res.ok) throw new Error('API Error');
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `HTTP Error ${res.status}`);
+    }
 
-    typingEl?.remove();
+    typingEl.remove();
     const msgId = 'msg_' + Date.now();
     const aiRow = appendMsg('ai', '', true, msgId);
     const contentEl = aiRow.querySelector('.msg-content');
@@ -598,25 +581,31 @@ async function handleSend(overrideText = null, regenerate = false) {
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
 
+    // Loop parser stream untuk SSE Groq & Respon Kustom Langitjp
     while (true) {
-      const {done, value} = await reader.read();
+      const { done, value } = await reader.read();
       if (done) break;
+      
       const chunk = decoder.decode(value);
       const lines = chunk.split('\n');
+      
       for (const line of lines) {
-        const cleanedLine = line.trim();
-        if (!cleanedLine.startsWith('data: ')) continue;
-        const data = cleanedLine.slice(6);
+        const cleanLine = line.trim();
+        if (!cleanLine || !cleanLine.startsWith('data: ')) continue;
+        
+        const data = cleanLine.slice(6);
         if (data === '[DONE]') break;
+        
         try {
           const parsed = JSON.parse(data);
+          // Ambil properti content dari skema delta OpenAI/Groq
           const delta = parsed.choices?.[0]?.delta?.content || '';
           if (delta) {
             full += delta;
             contentEl.innerHTML = renderMarkdown(full) + '<span class="stream-cursor"></span>';
-            chatArea.scrollTo({top: chatArea.scrollHeight, behavior: 'smooth'});
+            chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: 'smooth' });
           }
-        } catch(e){}
+        } catch (e) {}
       }
     }
 
@@ -625,20 +614,22 @@ async function handleSend(overrideText = null, regenerate = false) {
 
     if (sess) {
       if (regenerate && sess.memory.length >= 2) {
-        sess.memory[sess.memory.length - 1] = {role:'assistant', content:full};
+        sess.memory[sess.memory.length - 1] = { role: 'assistant', content: full };
       } else {
-        sess.memory.push({role:'assistant', content:full});
+        sess.memory.push({ role: 'assistant', content: full });
       }
+      if (sess.memory.length > 40) sess.memory = sess.memory.slice(-40);
       saveSessions();
     }
 
     const mdat = state.msgData.find(m => m.id === msgId);
     if (mdat) mdat.text = full;
-    document.getElementById('memCount').textContent = Math.floor((sess?.memory?.length||0)/2);
+    document.getElementById('memCount').textContent = Math.floor((sess?.memory?.length || 0) / 2);
 
   } catch (err) {
     typingEl?.remove();
-    appendMsg('ai', '⚠️ Koneksi gagal. Pastikan Server Proxy Backend `/api/chat` di Vercel sudah aktif dan Env Groq API Key terpasang dengan benar.');
+    console.error(err);
+    appendMsg('ai', `⚠️ Koneksi gagal.<br><small style="color:var(--text3)">Detail: ${err.message}</small>`);
   } finally {
     state.typing = false;
     sendBtn.disabled = userInput.value.trim().length === 0;
@@ -646,7 +637,7 @@ async function handleSend(overrideText = null, regenerate = false) {
 }
 
 // ═══════════════════════════════════════════
-// APPEND MESSAGE
+// APPEND MESSAGE & UI COMPONENT
 // ═══════════════════════════════════════════
 function appendMsg(role, text, animate = true, forceId = null) {
   const id = forceId || ('msg_' + Date.now() + '_' + Math.random().toString(36).slice(2));
@@ -804,7 +795,6 @@ function renderReactions(msgId, mdat) {
   });
 }
 
-// ─── TYPING INDICATOR AI ───
 function appendTyping() {
   const row = document.createElement('div');
   row.className = 'msg-row ai';
@@ -824,7 +814,6 @@ function appendTyping() {
   return row;
 }
 
-// ─── MARKDOWN RENDERER ───
 function renderMarkdown(text) {
   if (!text) return '';
   let t = text;
@@ -923,7 +912,9 @@ function attachCodeHandlers(container) {
   });
 }
 
-// ─── VOICE INPUT ───
+// ═══════════════════════════════════════════
+// VOICE INPUT & SIDEBAR CONTROLS
+// ═══════════════════════════════════════════
 let recognition = null;
 let isListening = false;
 
@@ -975,7 +966,6 @@ function stopListening() {
   document.getElementById('voiceBtn').classList.remove('recording');
 }
 
-// ─── SIDEBAR LOGIC ───
 document.getElementById('histBtn').addEventListener('click', () => { histSidebar.classList.add('open'); overlay.classList.add('open'); });
 document.getElementById('closeHist').addEventListener('click', closeAllSidebars);
 document.getElementById('menuBtn').addEventListener('click', () => { rSidebar.classList.add('open'); overlay.classList.add('open'); });
@@ -1008,7 +998,6 @@ document.getElementById('sbExport').addEventListener('click', () => {
 function escHtml(t) { return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
 
-// Swipe gestures
 let touchStartX = 0;
 document.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX, {passive:true});
 document.addEventListener('touchend', e => {
